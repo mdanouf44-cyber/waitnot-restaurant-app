@@ -285,7 +285,7 @@ export const userDB = {
       updatedAt: new Date().toISOString()
     };
     users.push(newUser);
-    await writeData('users.json', newUser);
+    await writeData('users.json', users);
     return newUser;
   },
   

@@ -32,14 +32,14 @@ router.post('/send-otp', async (req, res) => {
     });
 
     // In production, send SMS here
-    console.log(`OTP for ${phone}: ${otp}`);
+    console.log(`✅ OTP for ${phone}: ${otp}`);
     
-    // For development, return OTP in response
+    // For development, always return OTP in response
+    // In production with SMS service, remove the otp field
     res.json({ 
       success: true, 
       message: 'OTP sent successfully',
-      // Remove this in production!
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      otp: otp // Always return OTP for now (remove in production with SMS)
     });
   } catch (error) {
     console.error('Error sending OTP:', error);
@@ -59,18 +59,27 @@ router.post('/verify-otp', async (req, res) => {
     // Check OTP
     const storedOTP = otpStore.get(phone);
     
+    console.log(`Verifying OTP for ${phone}`);
+    console.log(`Stored OTP:`, storedOTP);
+    console.log(`Provided OTP:`, otp);
+    
     if (!storedOTP) {
-      return res.status(400).json({ error: 'OTP not found or expired' });
+      console.log('❌ OTP not found in store');
+      return res.status(400).json({ error: 'OTP not found or expired. Please request a new OTP.' });
     }
 
     if (storedOTP.expiresAt < Date.now()) {
+      console.log('❌ OTP expired');
       otpStore.delete(phone);
-      return res.status(400).json({ error: 'OTP expired' });
+      return res.status(400).json({ error: 'OTP expired. Please request a new OTP.' });
     }
 
     if (storedOTP.otp !== otp) {
-      return res.status(400).json({ error: 'Invalid OTP' });
+      console.log('❌ Invalid OTP');
+      return res.status(400).json({ error: 'Invalid OTP. Please try again.' });
     }
+    
+    console.log('✅ OTP verified successfully');
 
     // OTP verified, remove from store
     otpStore.delete(phone);
