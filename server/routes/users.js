@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import { userDB } from '../db.js';
 
 const router = express.Router();
@@ -11,6 +12,24 @@ const otpStore = new Map();
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Send SMS via MSG91
+const sendSMS = async (phone, otp) => {
+  try {
+    const authKey = process.env.MSG91_AUTH_KEY || '480068AuNZVGZoLD69289ec2P1';
+    
+    // MSG91 API endpoint for sending OTP
+    const url = `https://control.msg91.com/api/v5/otp?authkey=${authKey}&mobile=91${phone}&otp=${otp}`;
+    
+    const response = await axios.get(url);
+    
+    console.log('MSG91 Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('MSG91 Error:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 // Send OTP (in production, integrate with SMS service like Twilio)
@@ -31,16 +50,27 @@ router.post('/send-otp', async (req, res) => {
       expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
     });
 
-    // In production, send SMS here
-    console.log(`✅ OTP for ${phone}: ${otp}`);
-    
-    // For development, always return OTP in response
-    // In production with SMS service, remove the otp field
-    res.json({ 
-      success: true, 
-      message: 'OTP sent successfully',
-      otp: otp // Always return OTP for now (remove in production with SMS)
-    });
+    // Send SMS via MSG91
+    try {
+      await sendSMS(phone, otp);
+      console.log(`✅ OTP sent to ${phone}: ${otp}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'OTP sent to your phone',
+        // For development/testing, show OTP
+        otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      });
+    } catch (smsError) {
+      console.error('Failed to send SMS, but OTP stored:', smsError);
+      
+      // Still return success with OTP for development
+      res.json({ 
+        success: true, 
+        message: 'OTP generated (SMS service unavailable)',
+        otp: otp // Show OTP if SMS fails
+      });
+    }
   } catch (error) {
     console.error('Error sending OTP:', error);
     res.status(500).json({ error: error.message });
