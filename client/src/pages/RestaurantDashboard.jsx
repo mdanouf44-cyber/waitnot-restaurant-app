@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, QrCode, LogOut, Film, Eye, Heart, X, CreditCard } from 'lucide-react';
 import axios from 'axios';
 import io from 'socket.io-client';
+import BillModal from '../components/BillModal';
 
 export default function RestaurantDashboard() {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ export default function RestaurantDashboard() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imageUploadMethod, setImageUploadMethod] = useState('url'); // 'url' or 'upload'
   const [imageFile, setImageFile] = useState(null);
+  const [showBillModal, setShowBillModal] = useState(false);
+  const [currentBill, setCurrentBill] = useState(null);
 
   useEffect(() => {
     const restaurantId = localStorage.getItem('restaurantId');
@@ -475,23 +478,35 @@ export default function RestaurantDashboard() {
       });
     });
 
-    const billSummary = Object.values(allItems)
-      .map(item => `${item.name} x ${item.quantity} = ₹${item.total}`)
-      .join('\n');
+    const firstOrder = tableOrders[0];
+    const subtotal = totalAmount;
+    const tax = 0; // Can add tax calculation if needed
+    
+    // Create bill data
+    const billData = {
+      restaurant: {
+        name: restaurant.name,
+        address: restaurant.address || '',
+        phone: restaurant.phone || ''
+      },
+      tableNumber,
+      customer: {
+        name: firstOrder.customerName,
+        phone: firstOrder.customerPhone
+      },
+      items: Object.values(allItems),
+      subtotal,
+      tax,
+      total: totalAmount,
+      date: new Date().toLocaleString(),
+      billNumber: `BILL-${Date.now()}`,
+      paymentStatus: tableOrders.some(o => o.paymentStatus === 'paid') ? 'paid' : 'pending',
+      paymentMethod: firstOrder.paymentMethod || 'cash'
+    };
 
-    const confirmMessage = `Generate Final Bill for Table ${tableNumber}?\n\n` +
-      `Orders: ${tableOrders.length}\n` +
-      `Customer: ${tableOrders[0].customerName}\n\n` +
-      `Items:\n${billSummary}\n\n` +
-      `TOTAL: ₹${totalAmount}\n\n` +
-      `This will:\n` +
-      `✓ Mark all orders as completed\n` +
-      `✓ Clear customer session\n` +
-      `✓ Ready table for next customer`;
-
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+    // Show bill modal
+    setCurrentBill(billData);
+    setShowBillModal(true);
     
     try {
       // Mark all orders as completed
@@ -1613,6 +1628,13 @@ export default function RestaurantDashboard() {
           <PaymentSettingsTab restaurant={restaurant} setRestaurant={setRestaurant} />
         )}
       </div>
+
+      {/* Bill Modal */}
+      <BillModal 
+        isOpen={showBillModal}
+        onClose={() => setShowBillModal(false)}
+        billData={currentBill}
+      />
     </div>
   );
 }
