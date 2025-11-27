@@ -632,6 +632,21 @@ export default function RestaurantDashboard() {
                     {order.deliveryAddress && (
                       <p className="text-sm text-gray-600 mt-1">📍 {order.deliveryAddress}</p>
                     )}
+                    {/* Payment Status */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        order.paymentStatus === 'paid' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {order.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
+                      </span>
+                      {order.paymentMethod && (
+                        <span className="text-xs text-gray-500">
+                          via {order.paymentMethod === 'razorpay' ? 'Online' : order.paymentMethod.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusColors[order.status]}`}>
                     {order.status}
@@ -754,6 +769,23 @@ export default function RestaurantDashboard() {
                     <div className="mb-4">
                       <p className="text-sm text-gray-600">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
                       <p className="text-xs text-gray-500">{new Date(firstOrder.createdAt).toLocaleTimeString()}</p>
+                      {/* Payment Status for Table */}
+                      <div className="flex items-center gap-2 mt-2">
+                        {tableOrders.some(o => o.paymentStatus === 'paid') ? (
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800">
+                            ✓ Paid
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">
+                            ⏳ Pending Payment
+                          </span>
+                        )}
+                        {firstOrder.paymentMethod && (
+                          <span className="text-xs text-gray-500">
+                            via {firstOrder.paymentMethod === 'razorpay' ? 'Online' : firstOrder.paymentMethod.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="mb-4">
