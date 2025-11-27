@@ -16,6 +16,8 @@ export default function Reels() {
     paymentMethod: 'upi'
   });
   const [showPayment, setShowPayment] = useState(false);
+  const [showUPIQR, setShowUPIQR] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
   const [isMuted, setIsMuted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef(null);
@@ -137,28 +139,16 @@ export default function Reels() {
         return;
       }
       
-      // If UPI payment, redirect to UPI app
+      // If UPI payment, show QR code
       if (orderForm.paymentMethod === 'upi') {
         if (!selectedReel?.restaurantId?.paymentSettings?.upiId) {
-          alert('Restaurant UPI not configured. Please contact restaurant or choose Cash on Delivery.');
+          alert('Restaurant UPI not configured. Please choose Cash on Delivery.');
           return;
         }
         
-        // Create UPI payment link
-        const upiId = selectedReel.restaurantId.paymentSettings.upiId;
-        const upiName = selectedReel.restaurantId.paymentSettings.upiName || selectedReel.restaurantId.name;
-        const amount = finalTotal.toFixed(2);
-        const note = `Order: ${selectedReel.dishName} from ${selectedReel.restaurantId.name}`;
-        
-        console.log('UPI Payment Details:', { upiId, upiName, amount, note });
-        
-        // UPI deep link format
-        const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-        
-        console.log('UPI URL:', upiUrl);
-        
-        // Try to open UPI app
-        window.location.href = upiUrl;
+        // Show UPI QR code modal
+        setShowPayment(false);
+        setShowUPIQR(true);
         
         // Wait a bit then create order with pending payment
         setTimeout(async () => {
@@ -518,6 +508,105 @@ export default function Reels() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* UPI QR Code Payment Modal */}
+      {showUPIQR && selectedReel && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Pay with UPI</h2>
+              <button onClick={() => setShowUPIQR(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="text-center mb-6">
+              <p className="text-3xl font-bold text-primary mb-2">
+                ₹{selectedReel.price * quantity + 40 + Math.round((selectedReel.price * quantity) * 0.05)}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">Scan QR code with any UPI app</p>
+            </div>
+
+            {/* Generate UPI QR Code */}
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 mb-4">
+              <div className="flex items-center justify-center">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${encodeURIComponent(selectedReel.restaurantId.paymentSettings?.upiId || '')}&pn=${encodeURIComponent(selectedReel.restaurantId.paymentSettings?.upiName || selectedReel.restaurantId.name)}&am=${selectedReel.price * quantity + 40 + Math.round((selectedReel.price * quantity) * 0.05)}&cu=INR&tn=${encodeURIComponent(`Order: ${selectedReel.dishName}`)}`}
+                  alt="UPI QR Code"
+                  className="w-64 h-64"
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                <strong>UPI ID:</strong> {selectedReel.restaurantId.paymentSettings?.upiId}
+              </p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                <strong>Amount:</strong> ₹{selectedReel.price * quantity + 40 + Math.round((selectedReel.price * quantity) * 0.05)}
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 dark:text-gray-300 mb-2 font-semibold">
+                Transaction ID (Optional)
+              </label>
+              <input
+                type="text"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+                placeholder="Enter UPI transaction ID"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Enter transaction ID after payment for faster verification
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUPIQR(false)}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const finalTotal = selectedReel.price * quantity + 40 + Math.round((selectedReel.price * quantity) * 0.05);
+                  const orderData = {
+                    restaurantId: selectedReel.restaurantId._id,
+                    items: [{
+                      menuItemId: selectedReel._id,
+                      name: selectedReel.dishName,
+                      price: selectedReel.price,
+                      quantity: quantity
+                    }],
+                    totalAmount: finalTotal,
+                    orderType: 'delivery',
+                    ...orderForm,
+                    paymentStatus: 'pending',
+                    transactionId: transactionId || 'Not provided'
+                  };
+
+                  try {
+                    await axios.post('/api/orders', orderData);
+                    alert('Order placed! Restaurant will verify payment. 🎉');
+                    closeOrderModal();
+                    setShowUPIQR(false);
+                    setTransactionId('');
+                  } catch (error) {
+                    console.error('Error placing order:', error);
+                    alert('Failed to place order. Please try again.');
+                  }
+                }}
+                className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold"
+              >
+                I've Paid
+              </button>
+            </div>
           </div>
         </div>
       )}
