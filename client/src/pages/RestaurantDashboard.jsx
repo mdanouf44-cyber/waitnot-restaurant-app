@@ -34,19 +34,53 @@ export default function RestaurantDashboard() {
       return;
     }
 
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     fetchRestaurant(restaurantId);
     fetchOrders(restaurantId);
     fetchReels(restaurantId);
 
-    const socket = io('http://localhost:5000');
+    // Use production Socket.IO URL
+    const socketUrl = localStorage.getItem('socketUrl') || 'https://waitnot-restaurant-app.onrender.com';
+    const socket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
+    });
+    
     socket.emit('join-restaurant', restaurantId);
     
     socket.on('new-order', (order) => {
+      console.log('New order received:', order);
       setOrders(prev => [order, ...prev]);
+      // Show notification
+      if (Notification.permission === 'granted') {
+        new Notification('New Order!', {
+          body: `Order from ${order.customerName}`,
+          icon: '/waitnotflogo.png'
+        });
+      }
     });
 
     socket.on('order-updated', (updatedOrder) => {
+      console.log('Order updated:', updatedOrder);
       setOrders(prev => prev.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
     });
 
     return () => socket.disconnect();
