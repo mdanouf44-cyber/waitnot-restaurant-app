@@ -97,24 +97,15 @@ export default function QROrder() {
         return;
       }
       
-      // Debug: Show cart details
-      const cartDetails = cart.map(item => `${item.name}: ₹${item.price} x ${item.quantity} = ₹${item.price * item.quantity}`).join('\n');
-      console.log('Cart items:', cart);
-      console.log('Cart details:\n', cartDetails);
-      console.log('Total amount:', total);
-      
-      // Show debug alert
-      alert(`DEBUG INFO:\nCart Items: ${cart.length}\n${cartDetails}\n\nTotal: ₹${total}`);
-      
       if (!total || total <= 0) {
-        alert('Cart is empty or invalid. Total: ₹' + total);
+        alert('Cart is empty. Please add items.');
         return;
       }
       
       // If UPI payment, redirect to UPI app
       if (paymentMethod === 'upi') {
         if (!restaurant?.paymentSettings?.upiId) {
-          alert('Restaurant UPI not configured. Please contact restaurant or choose Cash Payment.');
+          alert('Restaurant UPI not configured. Please choose Cash Payment.');
           return;
         }
         
@@ -124,22 +115,8 @@ export default function QROrder() {
         const amount = total.toString();
         const note = `Table ${tableNumber} - ${restaurant.name}`;
         
-        console.log('UPI Payment Details:', { 
-          upiId, 
-          upiName, 
-          amount, 
-          amountType: typeof amount,
-          note,
-          total 
-        });
-        
-        // UPI deep link format - amount should be a plain number string
+        // UPI deep link format
         const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-        
-        console.log('Full UPI URL:', upiUrl);
-        
-        // Show alert with amount before redirecting
-        alert(`Redirecting to UPI payment for ₹${amount}\n\nUPI ID: ${upiId}\nAmount: ${amount}`);
         
         // Try to open UPI app
         window.location.href = upiUrl;
