@@ -17,6 +17,7 @@ export default function Reels() {
   });
   const [showPayment, setShowPayment] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef(null);
   const videoRefs = useRef({});
   const navigate = useNavigate();
@@ -35,9 +36,22 @@ export default function Reels() {
       const newIndex = Math.round(scrollTop / itemHeight);
       
       if (newIndex !== currentIndex) {
+        // Pause previous video
+        const prevVideo = videoRefs.current[reels[currentIndex]?._id];
+        if (prevVideo) {
+          prevVideo.pause();
+        }
+        
         setCurrentIndex(newIndex);
+        setIsPaused(false);
+        
         if (reels[newIndex]) {
           incrementView(reels[newIndex]._id);
+          // Play new video
+          const newVideo = videoRefs.current[reels[newIndex]._id];
+          if (newVideo) {
+            newVideo.play();
+          }
         }
       }
     };
@@ -45,6 +59,20 @@ export default function Reels() {
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, [currentIndex, reels]);
+
+  // Toggle play/pause on video click
+  const togglePlayPause = () => {
+    const currentVideo = videoRefs.current[reels[currentIndex]?._id];
+    if (currentVideo) {
+      if (isPaused) {
+        currentVideo.play();
+        setIsPaused(false);
+      } else {
+        currentVideo.pause();
+        setIsPaused(true);
+      }
+    }
+  };
 
   const fetchReels = async () => {
     try {
@@ -153,7 +181,10 @@ export default function Reels() {
             className="h-screen w-screen snap-start relative flex items-center justify-center"
           >
             {/* Video Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black">
+            <div 
+              className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black cursor-pointer"
+              onClick={togglePlayPause}
+            >
               {reel.videoUrl ? (
                 <video
                   ref={(el) => videoRefs.current[reel._id] = el}
@@ -168,6 +199,17 @@ export default function Reels() {
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-white text-6xl">🍔</div>
+                </div>
+              )}
+              
+              {/* Pause Indicator */}
+              {isPaused && index === currentIndex && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black bg-opacity-50 rounded-full p-6">
+                    <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                    </svg>
+                  </div>
                 </div>
               )}
             </div>

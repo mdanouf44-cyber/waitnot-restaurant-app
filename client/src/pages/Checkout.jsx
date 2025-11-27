@@ -112,32 +112,6 @@ export default function Checkout() {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Order Type</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center text-gray-700 dark:text-gray-300">
-                    <input
-                      type="radio"
-                      value="delivery"
-                      checked={orderType === 'delivery'}
-                      onChange={(e) => setOrderType(e.target.value)}
-                      className="mr-2"
-                    />
-                    Delivery
-                  </label>
-                  <label className="flex items-center text-gray-700 dark:text-gray-300">
-                    <input
-                      type="radio"
-                      value="dine-in"
-                      checked={orderType === 'dine-in'}
-                      onChange={(e) => setOrderType(e.target.value)}
-                      className="mr-2"
-                    />
-                    Dine-in
-                  </label>
-                </div>
-              </div>
-
-              <div>
                 <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Name</label>
                 <input
                   type="text"
@@ -161,19 +135,17 @@ export default function Checkout() {
                 />
               </div>
 
-              {orderType === 'delivery' && (
-                <div>
-                  <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Delivery Address</label>
-                  <textarea
-                    required
-                    value={formData.deliveryAddress}
-                    onChange={(e) => setFormData({...formData, deliveryAddress: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-                    rows="3"
-                    placeholder="Enter your delivery address"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Delivery Address</label>
+                <textarea
+                  required
+                  value={formData.deliveryAddress}
+                  onChange={(e) => setFormData({...formData, deliveryAddress: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                  rows="3"
+                  placeholder="Enter your delivery address"
+                />
+              </div>
 
               <button
                 type="submit"
@@ -197,7 +169,7 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400 transition-colors">Delivery Fee</span>
-                <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹{orderType === 'delivery' ? 40 : 0}</span>
+                <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹40</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400 transition-colors">Taxes</span>
@@ -206,7 +178,7 @@ export default function Checkout() {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between text-lg font-bold transition-colors">
                 <span className="text-gray-800 dark:text-white">Total</span>
                 <span className="text-primary">
-                  ₹{total + (orderType === 'delivery' ? 40 : 0) + Math.round(total * 0.05)}
+                  ₹{total + 40 + Math.round(total * 0.05)}
                 </span>
               </div>
             </div>
@@ -230,7 +202,7 @@ export default function Checkout() {
 
             <div className="mb-4">
               <p className="text-gray-600 dark:text-gray-400 transition-colors">Total Amount</p>
-              <p className="text-3xl font-bold text-primary">₹{total + (orderType === 'delivery' ? 40 : 0) + Math.round(total * 0.05)}</p>
+              <p className="text-3xl font-bold text-primary">₹{total + 40 + Math.round(total * 0.05)}</p>
             </div>
             
             <div className="space-y-4 mb-6">
@@ -272,7 +244,7 @@ export default function Checkout() {
                 onClick={confirmPayment}
                 className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-red-600"
               >
-                Pay ₹{total + (orderType === 'delivery' ? 40 : 0) + Math.round(total * 0.05)}
+                Pay ₹{total + 40 + Math.round(total * 0.05)}
               </button>
             </div>
           </div>
