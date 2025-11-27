@@ -107,14 +107,14 @@ export default function Checkout() {
           </div>
 
           {/* Order Details Form */}
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Order Details</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 border border-transparent dark:border-gray-700 transition-colors">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white mb-3 sm:mb-4 transition-colors">Order Details</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-gray-700 mb-2">Order Type</label>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Order Type</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center">
+                  <label className="flex items-center text-gray-700 dark:text-gray-300">
                     <input
                       type="radio"
                       value="delivery"
@@ -124,7 +124,7 @@ export default function Checkout() {
                     />
                     Delivery
                   </label>
-                  <label className="flex items-center">
+                  <label className="flex items-center text-gray-700 dark:text-gray-300">
                     <input
                       type="radio"
                       value="dine-in"
@@ -138,43 +138,46 @@ export default function Checkout() {
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-2">Name</label>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Name</label>
                 <input
                   type="text"
                   required
                   value={formData.customerName}
                   onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                  placeholder="Your name"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-2">Phone</label>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Phone</label>
                 <input
                   type="tel"
                   required
                   value={formData.customerPhone}
                   onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                  placeholder="Your phone number"
                 />
               </div>
 
               {orderType === 'delivery' && (
                 <div>
-                  <label className="block text-gray-700 mb-2">Delivery Address</label>
+                  <label className="block text-gray-700 dark:text-gray-300 mb-2 transition-colors">Delivery Address</label>
                   <textarea
                     required
                     value={formData.deliveryAddress}
                     onChange={(e) => setFormData({...formData, deliveryAddress: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                     rows="3"
+                    placeholder="Enter your delivery address"
                   />
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold"
+                className="w-full bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold transition-colors shadow-md"
               >
                 Proceed to Payment
               </button>
@@ -184,24 +187,24 @@ export default function Checkout() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:sticky lg:top-24">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Order Summary</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 lg:sticky lg:top-24 border border-transparent dark:border-gray-700 transition-colors">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white mb-3 sm:mb-4 transition-colors">Order Summary</h2>
             
             <div className="space-y-2 mb-4">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-semibold">₹{total}</span>
+                <span className="text-gray-600 dark:text-gray-400 transition-colors">Subtotal</span>
+                <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹{total}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Delivery Fee</span>
-                <span className="font-semibold">₹{orderType === 'delivery' ? 40 : 0}</span>
+                <span className="text-gray-600 dark:text-gray-400 transition-colors">Delivery Fee</span>
+                <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹{orderType === 'delivery' ? 40 : 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Taxes</span>
-                <span className="font-semibold">₹{Math.round(total * 0.05)}</span>
+                <span className="text-gray-600 dark:text-gray-400 transition-colors">Taxes</span>
+                <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹{Math.round(total * 0.05)}</span>
               </div>
-              <div className="border-t pt-2 flex justify-between text-lg font-bold">
-                <span>Total</span>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between text-lg font-bold transition-colors">
+                <span className="text-gray-800 dark:text-white">Total</span>
                 <span className="text-primary">
                   ₹{total + (orderType === 'delivery' ? 40 : 0) + Math.round(total * 0.05)}
                 </span>
@@ -213,40 +216,55 @@ export default function Checkout() {
 
       {/* Payment Modal */}
       {showPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-4 sm:p-6 md:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Payment</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 md:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto border border-transparent dark:border-gray-700 shadow-2xl">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white transition-colors">Payment</h2>
+              <button 
+                onClick={() => setShowPayment(false)}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-gray-600 dark:text-gray-400 transition-colors">Total Amount</p>
+              <p className="text-3xl font-bold text-primary">₹{total + (orderType === 'delivery' ? 40 : 0) + Math.round(total * 0.05)}</p>
+            </div>
             
             <div className="space-y-4 mb-6">
-              <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary">
+              <label className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary transition-colors bg-white dark:bg-gray-700">
                 <input
                   type="radio"
                   name="payment"
                   value="upi"
                   checked={formData.paymentMethod === 'upi'}
                   onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                  className="accent-primary"
                 />
                 <Smartphone size={24} className="text-primary" />
-                <span className="font-semibold">UPI Payment</span>
+                <span className="font-semibold text-gray-800 dark:text-white transition-colors">UPI Payment</span>
               </label>
               
-              <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary">
+              <label className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary transition-colors bg-white dark:bg-gray-700">
                 <input
                   type="radio"
                   name="payment"
                   value="card"
                   checked={formData.paymentMethod === 'card'}
                   onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                  className="accent-primary"
                 />
                 <CreditCard size={24} className="text-primary" />
-                <span className="font-semibold">Card Payment</span>
+                <span className="font-semibold text-gray-800 dark:text-white transition-colors">Card Payment</span>
               </label>
             </div>
 
             <div className="flex gap-4">
               <button
                 onClick={() => setShowPayment(false)}
-                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300"
+                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>

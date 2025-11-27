@@ -234,38 +234,38 @@ export default function Reels() {
 
       {/* Order Modal */}
       {showOrderModal && selectedReel && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border border-transparent dark:border-gray-700 shadow-2xl">
             {!showPayment ? (
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Quick Order</h2>
-                  <button onClick={closeOrderModal} className="text-gray-500 hover:text-gray-700">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors">Quick Order</h2>
+                  <button onClick={closeOrderModal} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                     <X size={24} />
                   </button>
                 </div>
 
                 {/* Dish Info */}
-                <div className="mb-6 pb-6 border-b">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{selectedReel.dishName}</h3>
-                  <p className="text-gray-600 mb-2">{selectedReel.restaurantId.name}</p>
+                <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2 transition-colors">{selectedReel.dishName}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-2 transition-colors">{selectedReel.restaurantId.name}</p>
                   <p className="text-2xl font-bold text-primary">₹{selectedReel.price}</p>
                 </div>
 
                 {/* Quantity Selector */}
                 <div className="mb-6">
-                  <label className="block text-gray-700 font-semibold mb-3">Quantity</label>
+                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-3 transition-colors">Quantity</label>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                      className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white transition-colors"
                     >
                       <Minus size={20} />
                     </button>
-                    <span className="text-2xl font-bold w-12 text-center">{quantity}</span>
+                    <span className="text-2xl font-bold w-12 text-center text-gray-800 dark:text-white transition-colors">{quantity}</span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                      className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                     >
                       <Plus size={20} />
                     </button>
@@ -275,31 +275,31 @@ export default function Reels() {
                 {/* Order Form */}
                 <form onSubmit={handleOrderSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">Name</label>
+                    <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 transition-colors">Name</label>
                     <input
                       type="text"
                       required
                       value={orderForm.customerName}
                       onChange={(e) => setOrderForm({...orderForm, customerName: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                       placeholder="Your name"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">Phone</label>
+                    <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 transition-colors">Phone</label>
                     <input
                       type="tel"
                       required
                       value={orderForm.customerPhone}
                       onChange={(e) => setOrderForm({...orderForm, customerPhone: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                       placeholder="Your phone number"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                    <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 flex items-center gap-2 transition-colors">
                       <MapPin size={18} />
                       Delivery Address
                     </label>
@@ -307,28 +307,28 @@ export default function Reels() {
                       required
                       value={orderForm.deliveryAddress}
                       onChange={(e) => setOrderForm({...orderForm, deliveryAddress: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                       rows="3"
                       placeholder="Enter your delivery address"
                     />
                   </div>
 
                   {/* Total */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="font-semibold">₹{selectedReel.price * quantity}</span>
+                      <span className="text-gray-600 dark:text-gray-400 transition-colors">Subtotal</span>
+                      <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹{selectedReel.price * quantity}</span>
                     </div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600">Delivery Fee</span>
-                      <span className="font-semibold">₹40</span>
+                      <span className="text-gray-600 dark:text-gray-400 transition-colors">Delivery Fee</span>
+                      <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹40</span>
                     </div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600">Taxes (5%)</span>
-                      <span className="font-semibold">₹{Math.round((selectedReel.price * quantity) * 0.05)}</span>
+                      <span className="text-gray-600 dark:text-gray-400 transition-colors">Taxes (5%)</span>
+                      <span className="font-semibold text-gray-800 dark:text-white transition-colors">₹{Math.round((selectedReel.price * quantity) * 0.05)}</span>
                     </div>
-                    <div className="border-t pt-2 flex justify-between items-center">
-                      <span className="text-lg font-bold">Total</span>
+                    <div className="border-t border-gray-300 dark:border-gray-600 pt-2 flex justify-between items-center transition-colors">
+                      <span className="text-lg font-bold text-gray-800 dark:text-white transition-colors">Total</span>
                       <span className="text-xl font-bold text-primary">
                         ₹{selectedReel.price * quantity + 40 + Math.round((selectedReel.price * quantity) * 0.05)}
                       </span>
@@ -337,7 +337,7 @@ export default function Reels() {
 
                   <button
                     type="submit"
-                    className="w-full bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold text-lg"
+                    className="w-full bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold text-lg transition-colors shadow-md"
                   >
                     Proceed to Payment
                   </button>
@@ -347,55 +347,57 @@ export default function Reels() {
               /* Payment Screen */
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Payment</h2>
-                  <button onClick={closeOrderModal} className="text-gray-500 hover:text-gray-700">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors">Payment</h2>
+                  <button onClick={closeOrderModal} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                     <X size={24} />
                   </button>
                 </div>
 
                 <div className="mb-6">
-                  <p className="text-gray-600 mb-2">Total Amount</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-2 transition-colors">Total Amount</p>
                   <p className="text-3xl font-bold text-primary">
                     ₹{selectedReel.price * quantity + 40 + Math.round((selectedReel.price * quantity) * 0.05)}
                   </p>
                 </div>
 
                 <div className="space-y-3 mb-6">
-                  <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary">
+                  <label className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary transition-colors bg-white dark:bg-gray-700">
                     <input
                       type="radio"
                       name="payment"
                       value="upi"
                       checked={orderForm.paymentMethod === 'upi'}
                       onChange={(e) => setOrderForm({...orderForm, paymentMethod: e.target.value})}
+                      className="accent-primary"
                     />
                     <Smartphone size={24} className="text-primary" />
-                    <span className="font-semibold">UPI Payment</span>
+                    <span className="font-semibold text-gray-800 dark:text-white transition-colors">UPI Payment</span>
                   </label>
                   
-                  <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-primary">
+                  <label className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary transition-colors bg-white dark:bg-gray-700">
                     <input
                       type="radio"
                       name="payment"
                       value="card"
                       checked={orderForm.paymentMethod === 'card'}
                       onChange={(e) => setOrderForm({...orderForm, paymentMethod: e.target.value})}
+                      className="accent-primary"
                     />
                     <CreditCard size={24} className="text-primary" />
-                    <span className="font-semibold">Card Payment</span>
+                    <span className="font-semibold text-gray-800 dark:text-white transition-colors">Card Payment</span>
                   </label>
                 </div>
 
                 <div className="flex gap-4">
                   <button
                     onClick={() => setShowPayment(false)}
-                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-semibold"
+                    className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-semibold transition-colors"
                   >
                     Back
                   </button>
                   <button
                     onClick={confirmPayment}
-                    className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold"
+                    className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-red-600 font-semibold transition-colors"
                   >
                     Pay Now
                   </button>
