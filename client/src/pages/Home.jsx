@@ -15,7 +15,11 @@ export default function Home() {
   const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
-    fetchRestaurants();
+    const delaySearch = setTimeout(() => {
+      fetchRestaurants();
+    }, 300); // Wait 300ms after user stops typing
+
+    return () => clearTimeout(delaySearch);
   }, [searchQuery]);
 
   const fetchRestaurants = async () => {
