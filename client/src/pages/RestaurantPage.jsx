@@ -209,37 +209,25 @@ export default function RestaurantPage() {
                     <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-1 transition-colors">{item.name}</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2 transition-colors">{item.description}</p>
                     
-                    {/* Rating and View Reviews - Same Line */}
-                    <div className="flex items-center justify-between mb-2">
-                      {itemRatings[item._id] ? (
-                        <div className="flex items-center gap-1">
-                          <Star size={14} className="text-yellow-500 fill-yellow-500" />
-                          <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                            {itemRatings[item._id].average}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ({itemRatings[item._id].count})
-                          </span>
-                        </div>
-                      ) : (
-                        <div></div>
-                      )}
-                      
-                      <button
-                        onClick={() => setShowReviewsFor(showReviewsFor === item._id ? null : item._id)}
-                        className="flex items-center gap-1 text-primary hover:text-red-600 text-xs sm:text-sm font-semibold"
-                      >
-                        <MessageSquare size={14} />
-                        <span className="hidden sm:inline">{showReviewsFor === item._id ? 'Hide' : 'View'}</span>
-                      </button>
-                    </div>
+                    {/* Rating Display */}
+                    {itemRatings[item._id] && (
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                          {itemRatings[item._id].average}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          ({itemRatings[item._id].count} {itemRatings[item._id].count === 1 ? 'review' : 'reviews'})
+                        </span>
+                      </div>
+                    )}
                     
-                    <p className="text-lg sm:text-xl font-bold text-primary">{formatCurrency(item.price, i18n.language)}</p>
+                    <p className="text-lg sm:text-xl font-bold text-primary mb-2">{formatCurrency(item.price, i18n.language)}</p>
                   </div>
                 </div>
                 
                 {/* Add to Cart Button */}
-                <div className="flex items-center p-3 sm:p-4">
+                <div className="flex flex-col items-end gap-2 p-3 sm:p-4">
                   {quantity === 0 ? (
                     <button
                       onClick={() => addToCart(item, restaurant)}
@@ -251,11 +239,8 @@ export default function RestaurantPage() {
                     <div className="flex items-center gap-2 sm:gap-3 bg-primary text-white rounded-lg px-2 sm:px-3 py-2 shadow-md">
                       <button
                         onClick={() => {
-                          const cartItem = cart.find(i => i._id === item._id);
-                          if (cartItem) {
-                            const { updateQuantity } = useCart();
-                            updateQuantity(item._id, quantity - 1);
-                          }
+                          const { updateQuantity } = useCart();
+                          updateQuantity(item._id, quantity - 1);
                         }}
                         className="p-1 hover:bg-red-600 rounded transition-colors"
                       >
@@ -270,6 +255,15 @@ export default function RestaurantPage() {
                       </button>
                     </div>
                   )}
+                  
+                  {/* View Feedback Button */}
+                  <button
+                    onClick={() => setShowReviewsFor(showReviewsFor === item._id ? null : item._id)}
+                    className="flex items-center gap-1 text-primary hover:text-red-600 text-xs sm:text-sm font-semibold"
+                  >
+                    <MessageSquare size={14} />
+                    <span>{showReviewsFor === item._id ? 'Hide Feedback' : 'View Feedback'}</span>
+                  </button>
                 </div>
               </div>
               
