@@ -43,7 +43,7 @@ export default function BottomNav() {
   ];
 
   // Don't show bottom nav on certain pages
-  const hideOnPages = ['/restaurant-login', '/restaurant-dashboard', '/payment-settings', '/qr/', '/login'];
+  const hideOnPages = ['/restaurant-login', '/restaurant-dashboard', '/qr/', '/login'];
   if (hideOnPages.some(page => location.pathname.startsWith(page))) {
     return null;
   }
