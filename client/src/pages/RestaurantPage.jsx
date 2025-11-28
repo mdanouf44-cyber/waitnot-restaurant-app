@@ -17,12 +17,19 @@ export default function RestaurantPage() {
   const [restaurant, setRestaurant] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showReviewsFor, setShowReviewsFor] = useState(null);
+  const [itemRatings, setItemRatings] = useState({});
   const { addToCart, cart } = useCart();
   const { translatedContent: translatedRestaurant, isTranslating } = useRestaurantTranslation(restaurant);
 
   useEffect(() => {
     fetchRestaurant();
   }, [id]);
+
+  useEffect(() => {
+    if (restaurant) {
+      fetchAllRatings();
+    }
+  }, [restaurant]);
 
   // Handle Android back button
   useEffect(() => {
@@ -42,6 +49,25 @@ export default function RestaurantPage() {
       setRestaurant(data);
     } catch (error) {
       console.error('Error fetching restaurant:', error);
+    }
+  };
+
+  const fetchAllRatings = async () => {
+    try {
+      const ratings = {};
+      for (const item of restaurant.menu) {
+        const { data } = await axios.get(`/api/reviews/item/${id}/${item._id}`);
+        if (data.length > 0) {
+          const avgRating = (data.reduce((sum, r) => sum + r.rating, 0) / data.length).toFixed(1);
+          ratings[item._id] = {
+            average: parseFloat(avgRating),
+            count: data.length
+          };
+        }
+      }
+      setItemRatings(ratings);
+    } catch (error) {
+      console.error('Error fetching ratings:', error);
     }
   };
 
@@ -182,6 +208,19 @@ export default function RestaurantPage() {
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-1 transition-colors">{item.name}</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2 transition-colors">{item.description}</p>
+                    
+                    {/* Rating Display */}
+                    {itemRatings[item._id] && (
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                          {itemRatings[item._id].average}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          ({itemRatings[item._id].count} {itemRatings[item._id].count === 1 ? 'review' : 'reviews'})
+                        </span>
+                      </div>
+                    )}
                     <p className="text-lg sm:text-xl font-bold text-primary">{formatCurrency(item.price, i18n.language)}</p>
                   </div>
                   <button
