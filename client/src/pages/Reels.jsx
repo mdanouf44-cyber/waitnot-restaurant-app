@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, X, Plus, Minus, Wallet, Smartphone, MapPin, Volume2, VolumeX } from 'lucide-react';
 import axios from 'axios';
 import { initiateRazorpayPayment } from '../components/RazorpayPayment';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function Reels() {
   const [reels, setReels] = useState([]);
@@ -27,6 +28,17 @@ export default function Reels() {
   useEffect(() => {
     fetchReels();
   }, []);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      navigate('/');
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Wallet, Smartphone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import axios from 'axios';
 import { initiateRazorpayPayment } from '../components/RazorpayPayment';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function Checkout() {
   const { cart, restaurant, updateQuantity, removeFromCart, clearCart, total } = useCart();
@@ -16,6 +17,17 @@ export default function Checkout() {
     paymentMethod: 'upi'
   });
   const [showPayment, setShowPayment] = useState(false);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      navigate('/');
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Wallet, Smartphone, CheckCircle, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import { initiateRazorpayPayment } from '../components/RazorpayPayment';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function QROrder() {
   const { restaurantId, tableNumber } = useParams();
@@ -18,6 +19,17 @@ export default function QROrder() {
     fetchRestaurant();
     loadSavedCustomerInfo();
   }, [restaurantId, tableNumber]);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      navigate('/');
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate]);
 
   const loadSavedCustomerInfo = () => {
     // Load saved customer info for this table

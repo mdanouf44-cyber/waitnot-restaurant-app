@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Clock, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function OrderHistory() {
   const navigate = useNavigate();
@@ -20,6 +21,17 @@ export default function OrderHistory() {
 
     setUser(JSON.parse(userData));
     fetchOrders(token);
+  }, [navigate]);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      navigate('/');
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
   }, [navigate]);
 
   const fetchOrders = async (token) => {

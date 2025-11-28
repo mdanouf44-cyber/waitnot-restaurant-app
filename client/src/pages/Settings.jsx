@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Save, RotateCcw, Wifi } from 'lucide-react';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -16,6 +17,17 @@ export default function Settings() {
     setApiUrl(savedApiUrl);
     setSocketUrl(savedSocketUrl);
   }, []);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      navigate('/');
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate]);
 
   const handleSave = () => {
     localStorage.setItem('apiUrl', apiUrl);

@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { translateCategory } from '../utils/translationHelper';
 import { useRestaurantTranslation } from '../hooks/useContentTranslation';
 import { formatCurrency, convertNumerals } from '../utils/numberFormatter';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function RestaurantPage() {
   const { t, i18n } = useTranslation();
@@ -20,6 +21,17 @@ export default function RestaurantPage() {
   useEffect(() => {
     fetchRestaurant();
   }, [id]);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      navigate('/');
+    });
+
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate]);
 
   const fetchRestaurant = async () => {
     try {
