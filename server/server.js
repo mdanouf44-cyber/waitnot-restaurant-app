@@ -11,6 +11,7 @@ import reelsRoutes from './routes/reels.js';
 import authRoutes from './routes/auth.js';
 import paymentRoutes from './routes/payment.js';
 import userRoutes from './routes/users.js';
+import reviewRoutes from './routes/reviews.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/reels', reelsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Socket.IO for real-time orders
 io.on('connection', (socket) => {

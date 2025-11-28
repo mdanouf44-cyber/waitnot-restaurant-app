@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Clock, MapPin, Plus, Minus, Leaf, ArrowLeft } from 'lucide-react';
+import { Star, Clock, MapPin, Plus, Minus, Leaf, ArrowLeft, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
@@ -8,6 +8,7 @@ import { translateCategory } from '../utils/translationHelper';
 import { useRestaurantTranslation } from '../hooks/useContentTranslation';
 import { formatCurrency, convertNumerals } from '../utils/numberFormatter';
 import { App as CapacitorApp } from '@capacitor/app';
+import Reviews from '../components/Reviews';
 
 export default function RestaurantPage() {
   const { t, i18n } = useTranslation();
@@ -15,6 +16,7 @@ export default function RestaurantPage() {
   const navigate = useNavigate();
   const [restaurant, setRestaurant] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showReviewsFor, setShowReviewsFor] = useState(null);
   const { addToCart, cart } = useCart();
   const { translatedContent: translatedRestaurant, isTranslating } = useRestaurantTranslation(restaurant);
 
@@ -159,63 +161,83 @@ export default function RestaurantPage() {
           const quantity = getItemQuantity(item._id);
           
           return (
-            <div key={item._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 overflow-hidden flex border border-transparent dark:border-gray-700 transition-colors">
-              {/* Item Image */}
-              <div className="w-28 sm:w-32 h-28 sm:h-32 bg-gradient-to-r from-accent to-secondary flex items-center justify-center flex-shrink-0 relative">
-                {item.image ? (
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-white text-3xl">🍽️</span>
-                )}
-                {item.isVeg && (
-                  <div className="absolute top-1 left-1 bg-white p-1 rounded shadow-sm">
-                    <Leaf size={14} className="text-green-600" />
+            <div key={item._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 overflow-hidden border border-transparent dark:border-gray-700 transition-colors">
+              <div className="flex">
+                {/* Item Image */}
+                <div className="w-28 sm:w-32 h-28 sm:h-32 bg-gradient-to-r from-accent to-secondary flex items-center justify-center flex-shrink-0 relative">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white text-3xl">🍽️</span>
+                  )}
+                  {item.isVeg && (
+                    <div className="absolute top-1 left-1 bg-white p-1 rounded shadow-sm">
+                      <Leaf size={14} className="text-green-600" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Item Details */}
+                <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-1 transition-colors">{item.name}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2 transition-colors">{item.description}</p>
+                    <p className="text-lg sm:text-xl font-bold text-primary">{formatCurrency(item.price, i18n.language)}</p>
                   </div>
-                )}
-              </div>
-              
-              {/* Item Details */}
-              <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-1 transition-colors">{item.name}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2 transition-colors">{item.description}</p>
-                  <p className="text-lg sm:text-xl font-bold text-primary">{formatCurrency(item.price, i18n.language)}</p>
+                  <button
+                    onClick={() => setShowReviewsFor(showReviewsFor === item._id ? null : item._id)}
+                    className="flex items-center gap-1 text-primary hover:text-red-600 text-sm font-semibold mt-2"
+                  >
+                    <MessageSquare size={16} />
+                    {showReviewsFor === item._id ? 'Hide Reviews' : 'View Reviews'}
+                  </button>
+                </div>
+                
+                {/* Add to Cart Button */}
+                <div className="flex items-center p-3 sm:p-4">
+                  {quantity === 0 ? (
+                    <button
+                      onClick={() => addToCart(item, restaurant)}
+                      className="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-semibold text-sm sm:text-base whitespace-nowrap shadow-md"
+                    >
+                      {t('add')}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 sm:gap-3 bg-primary text-white rounded-lg px-2 sm:px-3 py-2 shadow-md">
+                      <button
+                        onClick={() => {
+                          const cartItem = cart.find(i => i._id === item._id);
+                          if (cartItem) {
+                            const { updateQuantity } = useCart();
+                            updateQuantity(item._id, quantity - 1);
+                          }
+                        }}
+                        className="p-1 hover:bg-red-600 rounded transition-colors"
+                      >
+                        <Minus size={18} />
+                      </button>
+                      <span className="font-bold min-w-[20px] text-center">{quantity}</span>
+                      <button
+                        onClick={() => addToCart(item, restaurant)}
+                        className="p-1 hover:bg-red-600 rounded transition-colors"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {/* Add to Cart Button */}
-              <div className="flex items-center p-3 sm:p-4">
-                {quantity === 0 ? (
-                  <button
-                    onClick={() => addToCart(item, restaurant)}
-                    className="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-red-600 transition-colors font-semibold text-sm sm:text-base whitespace-nowrap shadow-md"
-                  >
-                    {t('add')}
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 sm:gap-3 bg-primary text-white rounded-lg px-2 sm:px-3 py-2 shadow-md">
-                    <button
-                      onClick={() => {
-                        const cartItem = cart.find(i => i._id === item._id);
-                        if (cartItem) {
-                          const { updateQuantity } = useCart();
-                          updateQuantity(item._id, quantity - 1);
-                        }
-                      }}
-                      className="p-1 hover:bg-red-600 rounded transition-colors"
-                    >
-                      <Minus size={18} />
-                    </button>
-                    <span className="font-bold min-w-[20px] text-center">{quantity}</span>
-                    <button
-                      onClick={() => addToCart(item, restaurant)}
-                      className="p-1 hover:bg-red-600 rounded transition-colors"
-                    >
-                      <Plus size={18} />
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* Reviews Section */}
+              {showReviewsFor === item._id && (
+                <div className="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+                  <Reviews 
+                    restaurantId={id} 
+                    itemId={item._id} 
+                    itemName={item.name}
+                  />
+                </div>
+              )}
             </div>
           );
         })}

@@ -11,7 +11,7 @@ export async function initDB() {
   try {
     await fs.mkdir(DB_PATH, { recursive: true });
     
-    const files = ['restaurants.json', 'orders.json', 'reels.json', 'users.json'];
+    const files = ['restaurants.json', 'orders.json', 'reels.json', 'users.json', 'reviews.json'];
     for (const file of files) {
       const filePath = path.join(DB_PATH, file);
       try {
@@ -306,5 +306,49 @@ export const userDB = {
     };
     await writeData('users.json', users);
     return users[index];
+  }
+};
+
+
+// Review operations
+export const reviewDB = {
+  async findAll() {
+    return await readData('reviews.json');
+  },
+  
+  async findById(id) {
+    const reviews = await readData('reviews.json');
+    return reviews.find(r => r._id === id);
+  },
+  
+  async findByItem(restaurantId, itemId) {
+    const reviews = await readData('reviews.json');
+    return reviews.filter(r => r.restaurantId === restaurantId && r.itemId === itemId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  },
+  
+  async findByRestaurant(restaurantId) {
+    const reviews = await readData('reviews.json');
+    return reviews.filter(r => r.restaurantId === restaurantId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  },
+  
+  async create(data) {
+    const reviews = await readData('reviews.json');
+    const newReview = {
+      _id: generateId(),
+      ...data,
+      createdAt: data.createdAt || new Date().toISOString()
+    };
+    reviews.push(newReview);
+    await writeData('reviews.json', reviews);
+    return newReview;
+  },
+  
+  async getAverageRating(restaurantId, itemId) {
+    const reviews = await this.findByItem(restaurantId, itemId);
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return (sum / reviews.length).toFixed(1);
   }
 };
