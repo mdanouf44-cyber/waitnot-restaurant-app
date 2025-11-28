@@ -25,7 +25,7 @@ function App() {
               <Route path="/" element={<><Navbar /><Home /><BottomNav /></>} />
               <Route path="/restaurant/:id" element={<><Navbar /><RestaurantPage /><BottomNav /></>} />
               <Route path="/checkout" element={<><Navbar /><Checkout /><BottomNav /></>} />
-              <Route path="/reels" element={<><Navbar /><Reels /><BottomNav /></>} />
+              <Route path="/reels" element={<><Reels /><BottomNav /></>} />
               <Route path="/qr/:restaurantId/:tableNumber" element={<QROrder />} />
               <Route path="/restaurant-login" element={<RestaurantLogin />} />
               <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
