@@ -276,6 +276,11 @@ export const userDB = {
     return users.find(u => u.phone === phone);
   },
   
+  async findByUsername(username) {
+    const users = await readData('users.json');
+    return users.find(u => u.username === username);
+  },
+  
   async create(data) {
     const users = await readData('users.json');
     const newUser = {

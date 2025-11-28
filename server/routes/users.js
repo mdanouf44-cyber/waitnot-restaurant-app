@@ -32,6 +32,91 @@ const sendSMS = async (phone, otp) => {
   }
 };
 
+// Register new user with username and password
+router.post('/register', async (req, res) => {
+  try {
+    const { username, password, name, phone } = req.body;
+
+    if (!username || !password || !name || !phone) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Check if username already exists
+    const existingUser = await userDB.findByUsername(username);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user
+    const user = await userDB.create({
+      username,
+      password: hashedPassword,
+      name,
+      phone,
+      createdAt: new Date()
+    });
+
+    res.json({
+      success: true,
+      message: 'Registration successful'
+    });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Login with username and password
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+
+    // Find user by username
+    const user = await userDB.findByUsername(username);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    // Check password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, username: user.username },
+      process.env.JWT_SECRET || 'your_jwt_secret_key_here',
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        name: user.name,
+        phone: user.phone
+      }
+    });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Send OTP (in production, integrate with SMS service like Twilio)
 router.post('/send-otp', async (req, res) => {
   try {
