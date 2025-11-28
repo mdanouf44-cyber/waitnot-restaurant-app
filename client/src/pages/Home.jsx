@@ -65,7 +65,8 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
       {/* Search Section */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4 sm:mb-6 transition-colors">
@@ -138,6 +139,7 @@ export default function Home() {
           <p className="text-gray-500 dark:text-gray-400 text-lg transition-colors">No restaurants found. Try a different search.</p>
         </div>
       )}
+      </div>
     </div>
   );
 }

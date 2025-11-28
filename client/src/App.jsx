@@ -20,7 +20,7 @@ function App() {
     <ThemeProvider>
       <CartProvider>
         <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-16">
+          <div className="min-h-screen">
             <Routes>
               <Route path="/" element={<><Navbar /><Home /><BottomNav /></>} />
               <Route path="/restaurant/:id" element={<><Navbar /><RestaurantPage /><BottomNav /></>} />
