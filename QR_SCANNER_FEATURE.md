@@ -42,17 +42,28 @@ Example:
 https://waitnot.com/qr/abc123/5
 ```
 
-## Files Added/Modified
+## Technical Implementation
+
+### Library Used:
+- **html5-qrcode** (v2.3.8) - Modern, reliable QR code scanner
+- Works perfectly on mobile devices
+- Better performance than older libraries
+- Automatic camera selection (rear camera preferred)
+
+### Files Added/Modified
 
 ### New Files:
 1. **client/src/components/QRScanner.jsx**
    - Full-screen QR scanner component
+   - Uses html5-qrcode for reliable scanning
    - Camera access and QR code detection
    - Visual scanning frame with animations
+   - Automatic cleanup on unmount
 
 ### Modified Files:
 1. **client/package.json**
-   - Added `react-qr-scanner` dependency
+   - Added `html5-qrcode` dependency
+   - Removed old `react-qr-scanner` (outdated)
 
 2. **client/src/pages/Home.jsx**
    - Added scan button next to search bar
@@ -61,6 +72,10 @@ https://waitnot.com/qr/abc123/5
 3. **client/src/components/BottomNav.jsx**
    - Added "Scan" button in bottom navigation
    - Integrated QRScanner component
+
+4. **client/src/index.css**
+   - Added scanning line animation
+   - Smooth scanning effect
 
 ## User Experience
 
