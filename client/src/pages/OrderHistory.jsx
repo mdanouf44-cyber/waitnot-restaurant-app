@@ -98,7 +98,7 @@ export default function OrderHistory() {
       <div className="bg-white dark:bg-gray-800 shadow-md">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => window.location.href = '/'}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <ArrowLeft size={24} className="text-gray-700 dark:text-gray-300" />
@@ -117,7 +117,7 @@ export default function OrderHistory() {
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">No Orders Yet</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">Start ordering from your favorite restaurants!</p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => window.location.href = '/'}
               className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors"
             >
               Browse Restaurants

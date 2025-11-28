@@ -226,7 +226,7 @@ export default function QROrder() {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              navigate('/');
+              window.location.href = '/';
             }}
             className="flex items-center gap-2 text-white hover:text-gray-200 mb-2 transition-colors active:bg-red-600 p-2 -ml-2 rounded-lg touch-manipulation"
             type="button"

@@ -263,7 +263,7 @@ export default function Reels() {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate('/');
+            window.location.href = '/';
           }}
           className="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 pointer-events-auto transition-all"
         >
@@ -378,7 +378,7 @@ export default function Reels() {
               <p className="text-3xl font-bold mb-2">No Reels Available</p>
               <p className="text-gray-400 mb-8 text-lg">Check back later for delicious content!</p>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => window.location.href = '/'}
                 className="bg-primary px-8 py-4 rounded-full hover:bg-red-600 font-bold text-lg transition-all transform hover:scale-105 shadow-2xl"
               >
                 Go Home

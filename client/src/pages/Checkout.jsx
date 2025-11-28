@@ -116,7 +116,7 @@ export default function Checkout() {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12 text-center">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4">Your cart is empty</h2>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => window.location.href = '/'}
             className="bg-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-red-600 text-sm sm:text-base transition-colors"
           >
             Browse Restaurants

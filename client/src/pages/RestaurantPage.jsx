@@ -73,7 +73,7 @@ export default function RestaurantPage() {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          navigate('/');
+          window.location.href = '/';
         }}
         className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary mb-4 transition-colors active:bg-gray-100 dark:active:bg-gray-800 p-2 -ml-2 rounded-lg touch-manipulation"
         type="button"
