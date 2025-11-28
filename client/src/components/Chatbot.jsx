@@ -90,10 +90,9 @@ export default function Chatbot() {
         return "❌ Please add your delivery address in your profile before placing an order.";
       }
 
-      // Find the restaurant for this item
-      const restaurant = restaurants.find(r => r.name === item.restaurantName);
-      if (!restaurant) {
-        return "❌ Sorry, I couldn't find the restaurant for this item.";
+      // Check if we have restaurant ID
+      if (!item.restaurantId) {
+        return "❌ Sorry, I couldn't find the restaurant information for this item.";
       }
 
       // Create order payload
@@ -108,7 +107,7 @@ export default function Chatbot() {
         paymentMethod: 'cash',
         paymentStatus: 'pending',
         orderType: 'delivery',
-        restaurantId: restaurant._id
+        restaurantId: item.restaurantId
       };
 
       // Place the order
@@ -162,7 +161,8 @@ export default function Chatbot() {
           allMenuItems.push({
             ...item,
             restaurantName: restaurant.name,
-            restaurantRating: restaurant.rating
+            restaurantRating: restaurant.rating,
+            restaurantId: restaurant._id
           });
         });
       });
