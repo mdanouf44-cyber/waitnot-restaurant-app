@@ -126,19 +126,19 @@ const QRScanner = ({ onClose }) => {
       </div>
 
       {/* Instructions */}
-      <div className="bg-gray-900 text-white p-6 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <ScanLine className="text-red-500 animate-pulse" size={32} />
+      <div className="bg-gradient-to-t from-gray-900 via-gray-900 to-transparent text-white p-8 text-center">
+        <div className="flex items-center justify-center mb-3">
+          <ScanLine className="text-red-500 animate-pulse" size={40} />
         </div>
-        <p className="text-sm text-gray-300 mb-1">
+        <p className="text-base font-semibold text-white mb-2">
           Position the QR code within the frame
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-sm text-gray-300">
           The scanner will automatically detect the code
         </p>
         {error && (
-          <div className="mt-3 p-3 bg-red-500/20 border border-red-500 rounded-lg">
-            <p className="text-red-400 text-sm">{error}</p>
+          <div className="mt-4 p-3 bg-red-500/20 border border-red-500 rounded-lg">
+            <p className="text-red-300 text-sm font-medium">{error}</p>
           </div>
         )}
       </div>
