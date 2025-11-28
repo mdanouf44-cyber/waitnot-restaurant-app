@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Clock, Star } from 'lucide-react';
+import { Search, MapPin, Clock, Star, ScanLine } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { convertNumerals } from '../utils/numberFormatter';
+import QRScanner from '../components/QRScanner';
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -11,6 +12,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     fetchRestaurants();
@@ -73,15 +75,26 @@ export default function Home() {
           {t('discover')}
         </h1>
         
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={20} />
-          <input
-            type="text"
-            placeholder={t('search')}
-            className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={20} />
+            <input
+              type="text"
+              placeholder={t('search')}
+              className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          {/* QR Scanner Button */}
+          <button
+            onClick={() => setShowScanner(true)}
+            className="bg-primary hover:bg-red-600 text-white p-2.5 sm:p-3 rounded-lg transition-colors flex items-center justify-center"
+            title="Scan QR Code"
+          >
+            <ScanLine size={20} />
+          </button>
         </div>
       </div>
 
@@ -140,6 +153,9 @@ export default function Home() {
         </div>
       )}
       </div>
+
+      {/* QR Scanner Modal */}
+      {showScanner && <QRScanner onClose={() => setShowScanner(false)} />}
     </div>
   );
 }

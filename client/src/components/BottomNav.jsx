@@ -1,12 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Film, ShoppingCart, History } from 'lucide-react';
+import { Film, ShoppingCart, History, ScanLine } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useState, useEffect } from 'react';
+import QRScanner from './QRScanner';
 
 export default function BottomNav() {
   const location = useLocation();
   const { cart } = useCart();
   const [user, setUser] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
@@ -25,6 +27,12 @@ export default function BottomNav() {
       path: '/reels',
       icon: Film,
       label: 'Reels',
+      show: true
+    },
+    {
+      action: 'scan',
+      icon: ScanLine,
+      label: 'Scan',
       show: true
     },
     {
@@ -52,9 +60,29 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-2xl z-50 transition-colors backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-around h-16 px-4">
-          {navItems.filter(item => item.show).map((item) => {
+          {navItems.filter(item => item.show).map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            
+            // Handle scan button differently
+            if (item.action === 'scan') {
+              return (
+                <button
+                  key={`action-${index}`}
+                  onClick={() => setShowScanner(true)}
+                  className="flex flex-col items-center justify-center flex-1 h-full relative transition-all duration-300 group text-gray-500 dark:text-gray-400"
+                >
+                  <div className="relative z-10">
+                    <div className="p-2.5 rounded-2xl transition-all duration-300 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-hover:scale-105">
+                      <Icon size={24} className="transition-all duration-300" strokeWidth={2} />
+                    </div>
+                  </div>
+                  <span className="text-xs mt-1 font-medium transition-all duration-300 z-10 group-hover:text-primary">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            }
             
             return (
               <Link
@@ -112,6 +140,9 @@ export default function BottomNav() {
       
       {/* Safe area for iOS devices */}
       <div className="h-safe-area-inset-bottom bg-white dark:bg-gray-900" />
+
+      {/* QR Scanner Modal */}
+      {showScanner && <QRScanner onClose={() => setShowScanner(false)} />}
     </nav>
   );
 }
