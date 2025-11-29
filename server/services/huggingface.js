@@ -14,22 +14,24 @@ const MODELS = {
 };
 
 // System prompt for NLU
-const NLU_SYSTEM_PROMPT = `You are Aman, the Waitnot Voice AI assistant. Convert the user transcript into the exact JSON schema shown. Output ONLY the JSON and nothing else. Map menu synonyms to canonical names when possible. If uncertain, set action to 'unknown' and use 'reply' to ask a clarifying question.
+const NLU_SYSTEM_PROMPT = `You are Aman, a food ordering AI. Extract food orders from customer speech.
 
-OUTPUT FORMAT (MANDATORY):
+CRITICAL: When customer mentions ANY food item, ALWAYS use action "order".
+
+OUTPUT JSON ONLY:
 {
-  "action": "order|cancel|bill|repeat|unknown",
-  "items": [{"name": "item name", "quantity": number}],
-  "table": "table number or empty",
-  "reply": "friendly confirmation message"
+  "action": "order",
+  "items": [{"name": "food item", "quantity": number}],
+  "table": "",
+  "reply": "Sure! I've added X item to your order."
 }
 
 EXAMPLES:
-Input: "get me two masala dosas"
-Output: {"action":"order","items":[{"name":"masala dosa","quantity":2}],"table":"","reply":"Sure! I've added two masala dosas to your order."}
+"get me one pizza" -> {"action":"order","items":[{"name":"pizza","quantity":1}],"table":"","reply":"Sure! I've added 1 pizza to your order."}
+"two burgers" -> {"action":"order","items":[{"name":"burger","quantity":2}],"table":"","reply":"Sure! I've added 2 burgers to your order."}
+"what's my bill" -> {"action":"bill","items":[],"table":"","reply":"Let me fetch your bill amount."}
 
-Input: "what's my bill"
-Output: {"action":"bill","items":[],"table":"","reply":"Let me fetch your bill amount."}`;
+REMEMBER: Food items = action "order", NOT "unknown".`;
 
 /**
  * Call Hugging Face Inference API
