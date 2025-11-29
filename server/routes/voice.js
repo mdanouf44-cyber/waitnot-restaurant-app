@@ -1,5 +1,5 @@
 import express from 'express';
-import * as db from '../db.js';
+import { restaurantDB } from '../db.js';
 
 const router = express.Router();
 
@@ -171,7 +171,7 @@ router.post('/process', async (req, res) => {
     
     if (restaurantId) {
       try {
-        restaurant = await db.getRestaurantById(restaurantId);
+        restaurant = await restaurantDB.findById(restaurantId);
         if (restaurant && restaurant.menu) {
           menuItems = restaurant.menu;
         }
@@ -242,7 +242,7 @@ router.post('/process', async (req, res) => {
     
     // Process order - get restaurant menu
     if (restaurantId) {
-      const restaurant = await db.getRestaurantById(restaurantId);
+      const restaurant = await restaurantDB.findById(restaurantId);
       console.log('Restaurant found:', restaurant ? restaurant.name : 'Not found');
       
       if (restaurant && restaurant.menu) {
