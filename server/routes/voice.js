@@ -10,9 +10,10 @@ const USE_AI_PROCESSING = process.env.USE_AI_PROCESSING === 'true';
 let processVoiceWithAI = null;
 let validateAndRepairOrder = null;
 let openrouterLoaded = false;
+let openrouterError = null;
 
 // Load OpenRouter service asynchronously
-(async () => {
+const loadOpenRouter = async () => {
   try {
     const openrouterModule = await import('../services/openrouter.js');
     processVoiceWithAI = openrouterModule.processVoiceWithAI;
@@ -20,10 +21,16 @@ let openrouterLoaded = false;
     openrouterLoaded = true;
     console.log('✅ OpenRouter AI service loaded successfully');
   } catch (error) {
-    console.log('⚠️ OpenRouter AI service not available (dependencies not installed)');
+    openrouterError = error.message;
+    console.log('⚠️ OpenRouter AI service not available:', error.message);
     console.log('   Voice assistant will use fallback keyword matching');
   }
-})();
+};
+
+// Start loading (don't await - let it load in background)
+loadOpenRouter().catch(err => {
+  console.error('Failed to load OpenRouter:', err);
+});
 
 // Helper function to extract quantity from text
 function extractQuantity(text) {
@@ -121,9 +128,16 @@ router.post('/process', async (req, res) => {
     const { command, restaurantId, tableNumber } = req.body;
     
     console.log('Voice command received:', { command, restaurantId, tableNumber });
+    console.log('OpenRouter status:', { loaded: openrouterLoaded, error: openrouterError });
     
     if (!command) {
-      return res.status(400).json({ error: 'Command is required' });
+      return res.status(400).json({ 
+        action: 'error',
+        items: [],
+        table: '',
+        reply: 'Command is required',
+        error: 'Command is required' 
+      });
     }
 
     const lowerCommand = command.toLowerCase();
@@ -242,22 +256,26 @@ router.post('/process', async (req, res) => {
       reply = "Please scan the QR code at your table first to start ordering.";
     }
     
-    res.json({
+    return res.json({
       action,
       items,
       table: tableNumber || '',
-      reply
+      reply,
+      source: 'fallback'
     });
     
   } catch (error) {
     console.error('Voice processing error:', error);
     console.error('Error stack:', error.stack);
-    res.status(500).json({ 
+    
+    // Always return 200 with error action to avoid breaking the client
+    return res.json({ 
       action: 'error',
       items: [],
       table: '',
       reply: "Sorry, I encountered an error. Please try again.",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal error',
+      source: 'error'
     });
   }
 });
