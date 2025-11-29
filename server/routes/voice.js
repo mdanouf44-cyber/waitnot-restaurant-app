@@ -169,9 +169,16 @@ router.post('/process', async (req, res) => {
     let menuItems = [];
     
     if (restaurantId) {
-      restaurant = await db.getRestaurantById(restaurantId);
-      if (restaurant && restaurant.menu) {
-        menuItems = restaurant.menu;
+      try {
+        restaurant = await db.getRestaurantById(restaurantId);
+        if (restaurant && restaurant.menu) {
+          menuItems = restaurant.menu;
+        }
+        console.log('Restaurant found:', restaurant ? restaurant.name : 'Not found');
+        console.log('Menu items:', menuItems.length);
+      } catch (dbError) {
+        console.error('Database error:', dbError.message);
+        // Continue without menu items
       }
     }
 
@@ -280,6 +287,12 @@ router.post('/process', async (req, res) => {
   } catch (error) {
     console.error('Voice processing error:', error);
     console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      command: req.body.command,
+      restaurantId: req.body.restaurantId
+    });
     
     // Always return 200 with error action to avoid breaking the client
     return res.json({ 
@@ -287,7 +300,7 @@ router.post('/process', async (req, res) => {
       items: [],
       table: '',
       reply: "Sorry, I encountered an error. Please try again.",
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal error',
+      error: error.message || 'Internal error',
       source: 'error'
     });
   }
