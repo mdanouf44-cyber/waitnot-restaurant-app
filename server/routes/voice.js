@@ -1,0 +1,196 @@
+import express from 'express';
+import * as db from '../db.js';
+
+const router = express.Router();
+
+// Helper function to extract quantity from text
+function extractQuantity(text) {
+  const numberWords = {
+    'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+    'a': 1, 'an': 1
+  };
+
+  // Check for digit
+  const digitMatch = text.match(/\b(\d+)\b/);
+  if (digitMatch) return parseInt(digitMatch[1]);
+
+  // Check for word
+  for (const [word, num] of Object.entries(numberWords)) {
+    if (text.toLowerCase().includes(word)) return num;
+  }
+
+  return 1; // Default quantity
+}
+
+// Helper function to calculate Levenshtein distance
+function levenshteinDistance(str1, str2) {
+  const matrix = [];
+  
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+  
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+  
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
+}
+
+// Helper function to match menu items
+function matchMenuItem(spokenText, menuItems) {
+  const matches = [];
+  const lowerSpoken = spokenText.toLowerCase();
+  
+  menuItems.forEach(item => {
+    const itemName = item.name.toLowerCase();
+    let confidence = 0;
+    
+    // Exact match
+    if (lowerSpoken.includes(itemName)) {
+      confidence = 1.0;
+    }
+    // Fuzzy match using Levenshtein distance
+    else {
+      const distance = levenshteinDistance(itemName, lowerSpoken);
+      const maxLength = Math.max(itemName.length, lowerSpoken.length);
+      confidence = 1 - (distance / maxLength);
+    }
+    
+    // Check for partial word matches
+    const itemWords = itemName.split(' ');
+    const spokenWords = lowerSpoken.split(' ');
+    const wordMatches = itemWords.filter(word => 
+      spokenWords.some(spoken => spoken.includes(word) || word.includes(spoken))
+    );
+    
+    if (wordMatches.length > 0) {
+      confidence = Math.max(confidence, wordMatches.length / itemWords.length);
+    }
+    
+    if (confidence > 0.5) {
+      matches.push({ item, confidence });
+    }
+  });
+  
+  // Sort by confidence
+  matches.sort((a, b) => b.confidence - a.confidence);
+  return matches;
+}
+
+// Process voice command
+router.post('/process', async (req, res) => {
+  try {
+    const { command, restaurantId, tableNumber } = req.body;
+    
+    if (!command) {
+      return res.status(400).json({ error: 'Command is required' });
+    }
+
+    const lowerCommand = command.toLowerCase();
+    
+    // Remove wake word
+    const cleanCommand = lowerCommand.replace(/hey waitnot,?/gi, '').trim();
+    
+    // Determine action
+    let action = 'order';
+    let reply = '';
+    let items = [];
+    
+    // Check for bill request
+    if (cleanCommand.includes('bill') || cleanCommand.includes('check') || cleanCommand.includes('total')) {
+      action = 'bill';
+      reply = "Let me fetch your bill amount.";
+      return res.json({ action, items, table: tableNumber, reply });
+    }
+    
+    // Check for repeat order
+    if (cleanCommand.includes('repeat') || cleanCommand.includes('show order')) {
+      action = 'repeat';
+      reply = "Here's your current order.";
+      return res.json({ action, items, table: tableNumber, reply });
+    }
+    
+    // Check for cancel
+    if (cleanCommand.includes('cancel') || cleanCommand.includes('remove')) {
+      action = 'cancel';
+      reply = "Which item would you like to cancel?";
+      return res.json({ action, items, table: tableNumber, reply });
+    }
+    
+    // Check for recommendation
+    if (cleanCommand.includes('recommend') || cleanCommand.includes('suggest') || cleanCommand.includes('popular')) {
+      action = 'recommendation';
+      reply = "Let me show you our popular items.";
+      return res.json({ action, items, table: tableNumber, reply });
+    }
+    
+    // Process order - get restaurant menu
+    if (restaurantId) {
+      const restaurant = await db.getRestaurantById(restaurantId);
+      
+      if (restaurant && restaurant.menu) {
+        const matches = matchMenuItem(cleanCommand, restaurant.menu);
+        
+        if (matches.length > 0) {
+          // Extract quantities for each matched item
+          matches.forEach(match => {
+            const quantity = extractQuantity(cleanCommand);
+            items.push({
+              name: match.item.name,
+              quantity: quantity,
+              price: match.item.price,
+              confidence: match.confidence
+            });
+          });
+          
+          // Generate reply
+          if (items.length === 1) {
+            const item = items[0];
+            reply = `Sure! I've added ${item.quantity} ${item.name}${item.quantity > 1 ? 's' : ''} to your order.`;
+          } else {
+            const itemList = items.map(i => `${i.quantity} ${i.name}`).join(', ');
+            reply = `Great! I've added ${itemList} to your order.`;
+          }
+        } else {
+          reply = "Sorry, I couldn't find that item on the menu. Could you please repeat?";
+        }
+      }
+    } else {
+      reply = "Please scan the QR code at your table first to start ordering.";
+    }
+    
+    res.json({
+      action,
+      items,
+      table: tableNumber || '',
+      reply
+    });
+    
+  } catch (error) {
+    console.error('Voice processing error:', error);
+    res.status(500).json({ 
+      action: 'error',
+      items: [],
+      table: '',
+      reply: "Sorry, I encountered an error. Please try again."
+    });
+  }
+});
+
+export default router;

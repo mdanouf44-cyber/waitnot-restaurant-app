@@ -335,60 +335,6 @@ router.put('/profile', async (req, res) => {
   }
 });
 
-// Create a new order
-router.post('/orders', async (req, res) => {
-  try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
-    const user = await userDB.findById(decoded.userId);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const { items, totalAmount, deliveryAddress, paymentMethod, paymentStatus, orderType, restaurantId, tableNumber } = req.body;
-
-    if (!items || items.length === 0) {
-      return res.status(400).json({ error: 'Order must contain at least one item' });
-    }
-
-    if (!totalAmount) {
-      return res.status(400).json({ error: 'Total amount is required' });
-    }
-
-    // Create order
-    const { orderDB } = await import('../db.js');
-    const order = await orderDB.create({
-      phone: user.phone,
-      customerName: user.name,
-      items,
-      totalAmount,
-      deliveryAddress: deliveryAddress || user.address,
-      paymentMethod: paymentMethod || 'cash',
-      paymentStatus: paymentStatus || 'pending',
-      orderType: orderType || 'delivery',
-      restaurantId,
-      tableNumber,
-      status: 'pending',
-      createdAt: new Date()
-    });
-
-    res.json({
-      success: true,
-      message: 'Order placed successfully',
-      order
-    });
-  } catch (error) {
-    console.error('Error creating order:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Get user's order history
 router.get('/orders', async (req, res) => {
   try {
