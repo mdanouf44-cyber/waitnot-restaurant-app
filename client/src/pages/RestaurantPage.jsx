@@ -87,6 +87,13 @@ export default function RestaurantPage() {
   const filteredMenu = selectedCategory === t('all') 
     ? displayRestaurant.menu 
     : displayRestaurant.menu.filter(item => item.category === selectedCategory);
+  
+  // Sort menu by rating (highest first)
+  const sortedMenu = [...filteredMenu].sort((a, b) => {
+    const ratingA = itemRatings[a._id]?.average || 0;
+    const ratingB = itemRatings[b._id]?.average || 0;
+    return ratingB - ratingA; // Descending order
+  });
 
   const getItemQuantity = (itemId) => {
     const item = cart.find(i => i._id === itemId);
@@ -181,9 +188,16 @@ export default function RestaurantPage() {
         })}
       </div>
 
+      {/* Sorting Info */}
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="font-semibold">{sortedMenu.length}</span> {sortedMenu.length === 1 ? 'item' : 'items'} • Sorted by rating
+        </p>
+      </div>
+
       {/* Menu List - Horizontal Cards */}
       <div className="space-y-3 sm:space-y-4">
-        {filteredMenu.map((item) => {
+        {sortedMenu.map((item) => {
           const quantity = getItemQuantity(item._id);
           
           return (
@@ -210,15 +224,20 @@ export default function RestaurantPage() {
                     <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 line-clamp-2 transition-colors">{item.description}</p>
                     
                     {/* Rating Display */}
-                    {itemRatings[item._id] && (
-                      <div className="flex items-center gap-1 mb-2">
-                        <Star size={14} className="text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                    {itemRatings[item._id] ? (
+                      <div className="flex items-center gap-1 mb-2 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md inline-flex">
+                        <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                        <span className="text-sm font-bold text-gray-800 dark:text-white">
                           {itemRatings[item._id].average}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          ({itemRatings[item._id].count} {itemRatings[item._id].count === 1 ? 'review' : 'reviews'})
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          ({itemRatings[item._id].count})
                         </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 mb-2 text-gray-400 dark:text-gray-500">
+                        <Star size={16} />
+                        <span className="text-xs">No ratings yet</span>
                       </div>
                     )}
                     
