@@ -6,34 +6,31 @@ const router = express.Router();
 // Feature flag for AI processing
 const USE_AI_PROCESSING = process.env.USE_AI_PROCESSING === 'true';
 
-// Try to import OpenRouter service (optional)
+// Try to import Hugging Face service (optional)
 let processVoiceWithAI = null;
 let validateAndRepairOrder = null;
-let openrouterLoaded = false;
-let openrouterError = null;
+let huggingfaceLoaded = false;
+let huggingfaceError = null;
 
-// Load OpenRouter service asynchronously - completely optional
-const loadOpenRouter = async () => {
+// Load Hugging Face service asynchronously - completely optional
+const loadHuggingFace = async () => {
   try {
-    // Only try to load if openai package is available
-    const openrouterModule = await import('../services/openrouter.js');
-    processVoiceWithAI = openrouterModule.processVoiceWithAI;
-    validateAndRepairOrder = openrouterModule.validateAndRepairOrder;
-    openrouterLoaded = true;
-    console.log('✅ OpenRouter AI service loaded successfully');
+    const hfModule = await import('../services/huggingface.js');
+    processVoiceWithAI = hfModule.processVoiceWithAI;
+    validateAndRepairOrder = hfModule.validateAndRepairOrder;
+    huggingfaceLoaded = true;
+    console.log('✅ Hugging Face AI service loaded successfully');
   } catch (error) {
-    openrouterError = error.message;
-    console.log('⚠️ OpenRouter AI service not available:', error.message);
+    huggingfaceError = error.message;
+    console.log('⚠️ Hugging Face AI service not available:', error.message);
     console.log('   Voice assistant will use fallback keyword matching');
-    console.log('   This is normal if openai package is not installed');
   }
 };
 
 // Start loading (don't await - let it load in background)
-// Wrapped in setTimeout to ensure route is registered first
 setTimeout(() => {
-  loadOpenRouter().catch(err => {
-    console.error('Failed to load OpenRouter (using fallback):', err.message);
+  loadHuggingFace().catch(err => {
+    console.error('Failed to load Hugging Face (using fallback):', err.message);
   });
 }, 100);
 
@@ -131,8 +128,9 @@ function matchMenuItem(spokenText, menuItems) {
 router.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    openrouterLoaded,
-    openrouterError,
+    aiBackend: 'huggingface',
+    huggingfaceLoaded,
+    huggingfaceError,
     timestamp: new Date().toISOString()
   });
 });
@@ -143,7 +141,7 @@ router.post('/process', async (req, res) => {
     const { command, restaurantId, tableNumber } = req.body;
     
     console.log('Voice command received:', { command, restaurantId, tableNumber });
-    console.log('OpenRouter status:', { loaded: openrouterLoaded, error: openrouterError });
+    console.log('Hugging Face status:', { loaded: huggingfaceLoaded, error: huggingfaceError });
     
     if (!command) {
       return res.status(400).json({ 
@@ -178,9 +176,9 @@ router.post('/process', async (req, res) => {
     }
 
     // Try AI processing first if enabled and available
-    if (USE_AI_PROCESSING && process.env.OPENROUTER_API_KEY && openrouterLoaded && processVoiceWithAI && validateAndRepairOrder) {
+    if (USE_AI_PROCESSING && process.env.HUGGINGFACE_API_KEY && huggingfaceLoaded && processVoiceWithAI && validateAndRepairOrder) {
       try {
-        console.log('Using AI processing...');
+        console.log('Using Hugging Face AI processing...');
         const aiResult = await processVoiceWithAI(cleanCommand, menuItems);
         const validatedResult = validateAndRepairOrder(aiResult, menuItems);
         
@@ -191,14 +189,14 @@ router.post('/process', async (req, res) => {
           items: validatedResult.items,
           table: tableNumber || validatedResult.table || '',
           reply: validatedResult.reply,
-          source: 'ai'
+          source: 'huggingface-ai'
         });
       } catch (aiError) {
-        console.error('AI processing failed, falling back to keyword matching:', aiError.message);
+        console.error('Hugging Face AI processing failed, falling back to keyword matching:', aiError.message);
         // Continue to fallback logic below
       }
-    } else if (USE_AI_PROCESSING && !openrouterLoaded) {
-      console.log('OpenRouter still loading, using fallback...');
+    } else if (USE_AI_PROCESSING && !huggingfaceLoaded) {
+      console.log('Hugging Face still loading, using fallback...');
     }
     
     // Determine action
