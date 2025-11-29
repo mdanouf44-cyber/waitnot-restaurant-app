@@ -1,17 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useCart } from '../context/CartContext';
 
 export default function Chatbot() {
-  const navigate = useNavigate();
-  const { addToCart, updateQuantity } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! I'm your intelligent food assistant. I can analyze our restaurants and recommend the best options for you. Ask me about:\n• Top rated restaurants\n• Best food items\n• Popular cuisines\n• Restaurant recommendations\n• Menu item ratings\n\nYou can also say 'order [food name]' and I'll add it to your cart!",
+      text: "Hi! I'm your intelligent food assistant. I can analyze our restaurants and recommend the best options for you. Ask me about:\n• Top rated restaurants\n• Best food items\n• Popular cuisines\n• Restaurant recommendations\n• Menu item ratings",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -21,11 +17,6 @@ export default function Chatbot() {
   const messagesEndRef = useRef(null);
   const [restaurantsData, setRestaurantsData] = useState([]);
   const [reviewsData, setReviewsData] = useState([]);
-  const [pendingOrder, setPendingOrder] = useState(null); // Store pending order for confirmation
-  const [showOrderModal, setShowOrderModal] = useState(false);
-  const [orderQuantity, setOrderQuantity] = useState(1);
-  const [orderPreference, setOrderPreference] = useState('veg');
-  const [awaitingPreference, setAwaitingPreference] = useState(null); // Store search query waiting for veg/non-veg preference
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,76 +73,6 @@ export default function Chatbot() {
     }, 800);
   };
 
-  const confirmAndPlaceOrder = async (item, quantity, preference) => {
-    try {
-      // Find the restaurant info
-      const restaurant = restaurantsData.find(r => r._id === item.restaurantId);
-      
-      if (!restaurant) {
-        console.error('Restaurant not found:', item.restaurantId);
-        return `❌ Sorry, I couldn't find the restaurant information. Please try again.`;
-      }
-
-      // Find the actual menu item from the restaurant to get the proper _id
-      const menuItem = restaurant.menu?.find(m => m.name === item.name);
-      
-      if (!menuItem) {
-        console.error('Menu item not found:', item.name);
-        return `❌ Sorry, I couldn't find this item in the restaurant menu. Please try again.`;
-      }
-
-      // Create the item object with proper structure
-      const cartItem = {
-        _id: menuItem._id,
-        name: menuItem.name,
-        price: menuItem.price,
-        image: menuItem.image,
-        description: menuItem.description
-      };
-
-      const restaurantInfo = {
-        _id: restaurant._id,
-        name: restaurant.name
-      };
-
-      console.log('Adding to cart:', cartItem, restaurantInfo, 'Quantity:', quantity);
-
-      // Add item to cart first time
-      addToCart(cartItem, restaurantInfo);
-      
-      // Clear pending order
-      setPendingOrder(null);
-
-      // Wait for cart to update, then update quantity if needed, then navigate
-      setTimeout(() => {
-        if (quantity > 1) {
-          updateQuantity(cartItem._id, quantity);
-        }
-        
-        // Navigate to checkout after quantity is updated
-        setTimeout(() => {
-          setIsOpen(false);
-          navigate('/checkout');
-        }, 300);
-      }, 300);
-
-      return `✅ Added to Cart!\n\n📦 Order Confirmed:\n• ${item.name} ${preference ? `(${preference})` : ''}\n• Quantity: ${quantity}\n• ⭐ ${item.rating || 'N/A'}/5\n• 💰 ₹${item.price} × ${quantity} = ₹${item.price * quantity}\n• 📍 ${item.restaurantName}\n\n🛒 Taking you to checkout...\n\nYou can review your order and complete the purchase there!`;
-    } catch (error) {
-      console.error('Add to cart error:', error);
-      return `❌ Sorry, I couldn't add this item to your cart. Error: ${error.message}`;
-    }
-  };
-
-  const askForConfirmation = (item) => {
-    // Store the pending order and show modal
-    setPendingOrder(item);
-    setShowOrderModal(true);
-    setOrderQuantity(1);
-    setOrderPreference(item.isVeg !== undefined ? (item.isVeg ? 'veg' : 'non-veg') : 'veg');
-    
-    return `🍽️ Perfect! Opening order confirmation...`;
-  };
-
   const getBotResponse = async (message) => {
     const lowerMessage = message.toLowerCase();
 
@@ -171,83 +92,11 @@ export default function Chatbot() {
   };
 
   const processMessage = async (lowerMessage, restaurants, reviews) => {
-    // Check if user is responding to veg/non-veg preference question
-    if (awaitingPreference) {
-      let userPreference = null;
-      
-      if (lowerMessage.includes('veg') && !lowerMessage.includes('non')) {
-        userPreference = 'veg';
-      } else if (lowerMessage.includes('non-veg') || lowerMessage.includes('non veg') || lowerMessage.includes('nonveg')) {
-        userPreference = 'non-veg';
-      }
-
-      if (!userPreference) {
-        return "Please specify either 'veg' or 'non-veg' to continue.";
-      }
-
-      // Now search for items with the specified preference
-      const searchQuery = awaitingPreference;
-      setAwaitingPreference(null);
-
-      const allMenuItems = [];
-      restaurants.forEach(restaurant => {
-        restaurant.menu?.forEach(item => {
-          allMenuItems.push({
-            ...item,
-            restaurantName: restaurant.name,
-            restaurantRating: restaurant.rating,
-            restaurantId: restaurant._id
-          });
-        });
-      });
-
-      // Find items that match the search query and preference
-      const matchingItems = allMenuItems.filter(item => {
-        const itemName = item.name.toLowerCase();
-        const matchesSearch = searchQuery.split(' ').some(word => 
-          itemName.includes(word) || word.includes(itemName.split(' ')[0])
-        );
-        
-        // Filter by veg/non-veg preference
-        const matchesPreference = userPreference === 'veg' 
-          ? (item.isVeg === true || item.isVeg === undefined)
-          : (item.isVeg === false || item.isVeg === undefined);
-        
-        return matchesSearch && matchesPreference;
-      });
-
-      if (matchingItems.length === 0) {
-        return `Sorry, I couldn't find any ${userPreference} ${searchQuery}. Would you like to try something else?`;
-      }
-
-      // Sort by rating
-      const sortedItems = matchingItems.sort((a, b) => {
-        const ratingDiff = (b.rating || 0) - (a.rating || 0);
-        if (ratingDiff !== 0) return ratingDiff;
-        return (b.restaurantRating || 0) - (a.restaurantRating || 0);
-      });
-
-      // Show the best match in modal
-      return askForConfirmation(sortedItems[0]);
-    }
-
-    // Check if user wants to order something
-    const orderKeywords = ['order', 'buy', 'get me', 'i want', 'place order', 'order for me'];
-    const wantsToOrder = orderKeywords.some(keyword => lowerMessage.includes(keyword));
-
     // Search for specific food items by name (e.g., "best chocolate shake", "where can I get pizza")
     const foodKeywords = ['shake', 'pizza', 'burger', 'biryani', 'pasta', 'sandwich', 'coffee', 'tea', 'cake', 'ice cream', 'noodles', 'rice', 'chicken', 'paneer', 'dal', 'roti', 'naan', 'samosa', 'dosa', 'idli', 'vada'];
     const hasSpecificFood = foodKeywords.some(keyword => lowerMessage.includes(keyword));
     
     if (hasSpecificFood || (lowerMessage.includes('best') && !lowerMessage.includes('restaurant'))) {
-      // Check if user already specified veg/non-veg in the message
-      let userPreference = null;
-      if (lowerMessage.includes('veg') && !lowerMessage.includes('non')) {
-        userPreference = 'veg';
-      } else if (lowerMessage.includes('non-veg') || lowerMessage.includes('non veg') || lowerMessage.includes('nonveg')) {
-        userPreference = 'non-veg';
-      }
-
       // Extract the food item name from the message
       const allMenuItems = [];
       restaurants.forEach(restaurant => {
@@ -255,53 +104,23 @@ export default function Chatbot() {
           allMenuItems.push({
             ...item,
             restaurantName: restaurant.name,
-            restaurantRating: restaurant.rating,
-            restaurantId: restaurant._id
+            restaurantRating: restaurant.rating
           });
         });
       });
 
       // Find items that match the search query
-      // Remove veg/non-veg keywords from search to avoid false matches
-      const searchTerms = lowerMessage
-        .replace(/\b(veg|non-veg|non veg|nonveg|vegetarian|non-vegetarian)\b/g, '')
-        .trim();
-      
       const matchingItems = allMenuItems.filter(item => {
         const itemName = item.name.toLowerCase();
         // Check if any word in the message matches the item name
-        return searchTerms.split(' ').some(word => 
-          word.length > 2 && (itemName.includes(word) || word.includes(itemName.split(' ')[0]))
+        return lowerMessage.split(' ').some(word => 
+          itemName.includes(word) || word.includes(itemName.split(' ')[0])
         );
       });
 
       if (matchingItems.length > 0) {
-        // If user wants to order but hasn't specified veg/non-veg, ask first
-        if (wantsToOrder && !userPreference) {
-          // Extract the food name for the question
-          const foodName = foodKeywords.find(keyword => lowerMessage.includes(keyword));
-          setAwaitingPreference(lowerMessage);
-          return `Would you like veg or non-veg ${foodName}? Please reply with 'veg' or 'non-veg'.`;
-        }
-
-        // Filter by preference if specified
-        let filteredItems = matchingItems;
-        if (userPreference) {
-          filteredItems = matchingItems.filter(item => {
-            if (userPreference === 'veg') {
-              return item.isVeg === true || item.isVeg === undefined;
-            } else {
-              return item.isVeg === false || item.isVeg === undefined;
-            }
-          });
-        }
-
-        if (filteredItems.length === 0) {
-          return `Sorry, I couldn't find any ${userPreference} items matching your search. Would you like to try something else?`;
-        }
-
         // Sort by rating (highest first), then by restaurant rating
-        const sortedItems = filteredItems.sort((a, b) => {
+        const sortedItems = matchingItems.sort((a, b) => {
           const ratingDiff = (b.rating || 0) - (a.rating || 0);
           if (ratingDiff !== 0) return ratingDiff;
           return (b.restaurantRating || 0) - (a.restaurantRating || 0);
@@ -309,11 +128,6 @@ export default function Chatbot() {
         
         // Get top 3 best-rated items
         const topMatches = sortedItems.slice(0, 3);
-
-        // If user wants to order, show modal
-        if (wantsToOrder && topMatches.length > 0) {
-          return askForConfirmation(topMatches[0]);
-        }
 
         let response = `🏆 Top 3 Best Recommendations:\n\n`;
         topMatches.forEach((item, i) => {
@@ -505,135 +319,6 @@ export default function Chatbot() {
         >
           <MessageCircle size={28} />
         </button>
-      )}
-
-      {/* Order Confirmation Modal */}
-      {showOrderModal && pendingOrder && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Your Order</h3>
-              <button
-                onClick={() => {
-                  setShowOrderModal(false);
-                  setPendingOrder(null);
-                }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-              >
-                <X size={20} className="text-gray-600 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Item Details */}
-            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <h4 className="font-bold text-lg text-gray-800 dark:text-white mb-2">{pendingOrder.name}</h4>
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                {pendingOrder.rating && (
-                  <span className="flex items-center gap-1">
-                    ⭐ {pendingOrder.rating}/5
-                  </span>
-                )}
-                <span>💰 ₹{pendingOrder.price}</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">📍 {pendingOrder.restaurantName}</p>
-            </div>
-
-            {/* Quantity Selector */}
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Quantity
-              </label>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setOrderQuantity(Math.max(1, orderQuantity - 1))}
-                  className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-bold text-gray-800 dark:text-white transition-colors"
-                >
-                  -
-                </button>
-                <span className="text-2xl font-bold text-gray-800 dark:text-white w-12 text-center">
-                  {orderQuantity}
-                </span>
-                <button
-                  onClick={() => setOrderQuantity(Math.min(10, orderQuantity + 1))}
-                  className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-bold text-gray-800 dark:text-white transition-colors"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Veg/Non-Veg Selector */}
-            {pendingOrder.isVeg === undefined && (
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Preference
-                </label>
-                <select
-                  value={orderPreference}
-                  onChange={(e) => setOrderPreference(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-                >
-                  <option value="veg">🟢 Vegetarian</option>
-                  <option value="non-veg">🔴 Non-Vegetarian</option>
-                </select>
-              </div>
-            )}
-
-            {/* Total Price */}
-            <div className="mb-6 p-4 bg-primary bg-opacity-10 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-800 dark:text-white">Total:</span>
-                <span className="text-2xl font-bold text-primary">₹{pendingOrder.price * orderQuantity}</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowOrderModal(false);
-                  setPendingOrder(null);
-                }}
-                className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg font-semibold transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    console.log('Add to Cart clicked', pendingOrder, orderQuantity);
-                    setShowOrderModal(false);
-                    setIsTyping(true);
-                    
-                    const preference = orderPreference === 'veg' ? 'Veg' : 'Non-Veg';
-                    const response = await confirmAndPlaceOrder(pendingOrder, orderQuantity, preference);
-                    
-                    setIsTyping(false);
-                    setMessages(prev => [...prev, {
-                      id: prev.length + 1,
-                      text: response,
-                      sender: 'bot',
-                      timestamp: new Date()
-                    }]);
-                  } catch (error) {
-                    console.error('Error in Add to Cart:', error);
-                    setIsTyping(false);
-                    setMessages(prev => [...prev, {
-                      id: prev.length + 1,
-                      text: `❌ Error: ${error.message}`,
-                      sender: 'bot',
-                      timestamp: new Date()
-                    }]);
-                  }
-                }}
-                className="flex-1 px-4 py-3 bg-primary hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Chat Window */}
