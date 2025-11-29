@@ -8,10 +8,18 @@
     "client": "cd client && npm run dev",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
-  "keywords": ["restaurant", "ordering", "reels", "pos"],
+  "keywords": [
+    "restaurant",
+    "ordering",
+    "reels",
+    "pos"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@openrouter/sdk": "^0.1.27"
   }
 }
