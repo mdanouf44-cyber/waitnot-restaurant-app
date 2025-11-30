@@ -137,11 +137,27 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   }, [conversationState]);
 
   useEffect(() => {
-    // Check if browser supports speech recognition
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // Check multiple ways to access Speech Recognition API for cross-browser compatibility
+    const SpeechRecognition = window.SpeechRecognition || 
+                              window.webkitSpeechRecognition || 
+                              window.mozSpeechRecognition || 
+                              window.msSpeechRecognition;
+    
+    // Check if we're in a secure context (required for microphone access)
+    const isSecureContext = window.isSecureContext || 
+                           location.protocol === 'https:' || 
+                           location.hostname === 'localhost' ||
+                           location.hostname === '127.0.0.1' ||
+                           Capacitor.isNativePlatform(); // APK support
     
     if (!SpeechRecognition) {
       console.error('Speech Recognition not supported in this browser');
+      setIsSupported(false);
+      return;
+    }
+    
+    if (!isSecureContext && !Capacitor.isNativePlatform()) {
+      console.error('Speech Recognition requires HTTPS or native app');
       setIsSupported(false);
       return;
     }
@@ -152,7 +168,13 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
       
+      // Additional settings for better mobile/APK support
+      if (Capacitor.isNativePlatform()) {
+        recognitionRef.current.maxAlternatives = 1;
+      }
+      
       console.log('Speech Recognition initialized successfully');
+      console.log('Platform:', Capacitor.isNativePlatform() ? 'Native APK' : 'Web Browser');
     } catch (error) {
       console.error('Error initializing Speech Recognition:', error);
       setIsSupported(false);
@@ -278,9 +300,6 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           }
         }
       };
-    } else {
-      setIsSupported(false);
-    }
 
     return () => {
       if (recognitionRef.current) {
@@ -295,15 +314,27 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       setIsListening(false);
     } else {
       try {
-        // Request microphone permission
+        // Request microphone permission with fallback for different platforms
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-              audio: true  // Simplified for mobile compatibility
-            });
+            // Simplified audio constraints for maximum compatibility
+            const constraints = Capacitor.isNativePlatform() 
+              ? { audio: true } // Simple for APK
+              : { 
+                  audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                  }
+                };
+            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             
             console.log('Microphone access granted');
-            console.log('Audio settings:', stream.getAudioTracks()[0].getSettings());
+            console.log('Platform:', Capacitor.isNativePlatform() ? 'APK' : 'Browser');
+            
+            // Stop the stream immediately - we just needed permission
+            stream.getTracks().forEach(track => track.stop());
           } catch (micError) {
             console.error('Microphone permission denied:', micError);
             setPermissionDenied(true);
@@ -932,8 +963,21 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     return (
       <div className="fixed bottom-32 left-4 z-50">
         <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg text-xs max-w-xs">
-          <p className="font-bold mb-1">Voice Assistant Unavailable</p>
-          <p>Voice commands are not supported on this device. Please use Chrome on Android or Safari on iOS.</p>
+          <p className="font-bold mb-2">🎤 Voice Assistant</p>
+          <p className="mb-2">Voice commands are not available on this browser/device.</p>
+          <div className="text-green-300 mb-1">✅ Supported:</div>
+          <ul className="text-xs ml-4 mb-2">
+            <li>• Chrome (Android/Desktop)</li>
+            <li>• Safari (iOS/macOS)</li>
+            <li>• Edge (Desktop)</li>
+            <li>• Waitnot APK</li>
+          </ul>
+          <div className="text-red-300 mb-1">❌ Not supported:</div>
+          <ul className="text-xs ml-4">
+            <li>• Firefox</li>
+            <li>• Older browsers</li>
+            <li>• HTTP sites (use HTTPS)</li>
+          </ul>
         </div>
       </div>
     );
