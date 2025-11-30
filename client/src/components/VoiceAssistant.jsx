@@ -160,6 +160,17 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         return;
       }
       
+      // Check if user is requesting a specific food item on home page
+      if (!restaurantId && (
+        lowerCommand.includes('get me') || 
+        lowerCommand.includes('order') || 
+        lowerCommand.includes('i want') ||
+        lowerCommand.includes('add')
+      )) {
+        await handleSpecificFoodRequest(lowerCommand);
+        return;
+      }
+      
       // Check if user is asking for recommendations on home page (no restaurantId)
       if (!restaurantId && (
         lowerCommand.includes('recommend') || 
@@ -199,6 +210,79 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     } finally {
       setIsProcessing(false);
       setWakeWordDetected(false);
+    }
+  };
+
+  const handleSpecificFoodRequest = async (command) => {
+    try {
+      // Extract quantity from command
+      const requestedQuantity = extractQuantity(command);
+      
+      // Fetch all restaurants with their menus
+      const { data: restaurants } = await axios.get('/api/restaurants');
+      
+      // Collect all menu items with ratings
+      const allItems = [];
+      restaurants.forEach(restaurant => {
+        if (restaurant.menu) {
+          restaurant.menu.forEach(item => {
+            allItems.push({
+              ...item,
+              restaurantId: restaurant._id,
+              restaurantName: restaurant.name
+            });
+          });
+        }
+      });
+      
+      // Extract food item name from command
+      const foodKeywords = ['pizza', 'burger', 'biryani', 'pasta', 'chicken', 'paneer', 'naan', 'rice', 'dal', 'tikka', 'fries', 'shake', 'lassi', 'coke'];
+      let matchedFood = null;
+      
+      for (const keyword of foodKeywords) {
+        if (command.includes(keyword)) {
+          matchedFood = keyword;
+          break;
+        }
+      }
+      
+      if (!matchedFood) {
+        const msg = "I couldn't identify the food item. Could you please be more specific?";
+        setResponse(msg);
+        speak(msg);
+        return;
+      }
+      
+      // Find matching items
+      const matchingItems = allItems.filter(item => 
+        item.name.toLowerCase().includes(matchedFood) ||
+        matchedFood.includes(item.name.toLowerCase().split(' ')[0])
+      );
+      
+      if (matchingItems.length === 0) {
+        const msg = `Sorry, I couldn't find any ${matchedFood} in our restaurants.`;
+        setResponse(msg);
+        speak(msg);
+        return;
+      }
+      
+      // Store matched items and ask for veg/non-veg preference
+      const msg = `Sure! Would you like a vegetarian or non-vegetarian ${matchedFood}?`;
+      setResponse(msg);
+      speak(msg);
+      
+      setConversationState({
+        step: 'awaiting_veg_preference',
+        items: matchingItems,
+        foodName: matchedFood,
+        requestedQuantity: requestedQuantity || null
+      });
+      
+    } catch (error) {
+      console.error('Error handling food request:', error);
+      const msg = "Sorry, I couldn't process your request. Please try again.";
+      setResponse(msg);
+      speak(msg);
     }
   };
 
@@ -267,32 +351,60 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           return;
         }
         
-        // Filter items by preference
-        const filteredItems = conversationState.items.filter(item => {
-          if (isVeg) return item.isVeg === true;
-          if (isNonVeg) return item.isVeg === false;
-          return true;
-        });
+        // Filter items by preference and sort by rating
+        const filteredItems = conversationState.items
+          .filter(item => {
+            if (isVeg) return item.isVeg === true;
+            if (isNonVeg) return item.isVeg === false;
+            return true;
+          })
+          .sort((a, b) => {
+            // Sort by rating (highest first), then by review count
+            if (b.averageRating !== a.averageRating) {
+              return (b.averageRating || 0) - (a.averageRating || 0);
+            }
+            return (b.reviewCount || 0) - (a.reviewCount || 0);
+          });
         
         if (filteredItems.length === 0) {
-          const msg = `Sorry, no ${isVeg ? 'vegetarian' : 'non-vegetarian'} items found in top rated items.`;
+          const msg = `Sorry, no ${isVeg ? 'vegetarian' : 'non-vegetarian'} ${conversationState.foodName || 'items'} found.`;
           setResponse(msg);
           speak(msg);
           setConversationState(null);
           return;
         }
         
-        // Show top item
+        // Get the best rated item
         const topItem = filteredItems[0];
-        const msg = `Great! The top rated ${isVeg ? 'vegetarian' : 'non-vegetarian'} item is ${topItem.name} from ${topItem.restaurantName} with ${topItem.averageRating} stars rating. How many would you like to add to your cart?`;
-        setResponse(msg);
-        speak(msg);
         
-        setConversationState({
-          step: 'awaiting_quantity',
-          selectedItem: topItem,
-          preference: isVeg ? 'veg' : 'non-veg'
-        });
+        // If quantity was already specified in initial command, skip quantity question
+        if (conversationState.requestedQuantity) {
+          const quantity = conversationState.requestedQuantity;
+          const ratingText = topItem.averageRating ? ` with ${topItem.averageRating} stars rating` : '';
+          const msg = `Great choice! I've added ${quantity} ${topItem.name} from ${topItem.restaurantName}${ratingText} to your cart. Redirecting you now...`;
+          setResponse(msg);
+          speak(msg);
+          
+          setTimeout(() => {
+            const cartItem = { ...topItem, quantity };
+            localStorage.setItem('voice_cart_item', JSON.stringify(cartItem));
+            window.location.href = `/restaurant/${topItem.restaurantId}`;
+          }, 2000);
+          
+          setConversationState(null);
+        } else {
+          // Ask for quantity
+          const ratingText = topItem.averageRating ? ` with ${topItem.averageRating} stars rating` : '';
+          const msg = `Great! The best rated ${isVeg ? 'vegetarian' : 'non-vegetarian'} ${conversationState.foodName || 'item'} is ${topItem.name} from ${topItem.restaurantName}${ratingText}. How many would you like to add to your cart?`;
+          setResponse(msg);
+          speak(msg);
+          
+          setConversationState({
+            step: 'awaiting_quantity',
+            selectedItem: topItem,
+            preference: isVeg ? 'veg' : 'non-veg'
+          });
+        }
         
       } else if (conversationState.step === 'awaiting_quantity') {
         // Extract quantity
