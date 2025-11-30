@@ -63,9 +63,9 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         }
       };
       
-      // Resume recognition after speaking with longer delay
+      // Resume recognition after speaking with optimized delay
       utterance.onend = () => {
-        console.log('TTS ended, will restart recognition in 3 seconds');
+        console.log('TTS ended, will restart recognition in 1 second');
         setTimeout(() => {
           setIsSpeaking(false);
           isSpeakingRef.current = false;
@@ -77,7 +77,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
               console.log('Could not restart recognition:', e);
             }
           }
-        }, 3000);
+        }, 1000); // Reduced to 1 second for faster response
       };
       
       utterance.onerror = (error) => {
