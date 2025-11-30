@@ -402,11 +402,12 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         return;
       }
       
-      // Find matching items
-      const matchingItems = allItems.filter(item => 
-        item.name.toLowerCase().includes(matchedFood) ||
-        matchedFood.includes(item.name.toLowerCase().split(' ')[0])
-      );
+      // Find matching items (with null safety)
+      const matchingItems = allItems.filter(item => {
+        if (!item || !item.name) return false;
+        const itemName = item.name.toLowerCase();
+        return itemName.includes(matchedFood) || matchedFood.includes(itemName.split(' ')[0]);
+      });
       console.log('Matching items found:', matchingItems.length);
       
       if (matchingItems.length === 0) {
@@ -575,14 +576,19 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           speak(msg);
           
           // Place order directly
-          setTimeout(async () => {
-            await placeVoiceOrder({
+          setTimeout(() => {
+            placeVoiceOrder({
               selectedItem: topItem,
               quantity: quantity,
               name: userName,
               phone: userPhone,
               address: userAddress
-            }, 'cash');
+            }, 'cash').catch(error => {
+              console.error('Error placing order:', error);
+              const errorMsg = "Sorry, there was an error placing your order. Please try again.";
+              setResponse(errorMsg);
+              speak(errorMsg);
+            });
           }, 2000);
         } else {
           // Ask for quantity
@@ -623,14 +629,19 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         speak(msg);
         
         // Place order directly with auto-filled details
-        setTimeout(async () => {
-          await placeVoiceOrder({
+        setTimeout(() => {
+          placeVoiceOrder({
             selectedItem: item,
             quantity: quantity,
             name: userName,
             phone: userPhone,
             address: userAddress
-          }, 'cash');
+          }, 'cash').catch(error => {
+            console.error('Error placing order:', error);
+            const errorMsg = "Sorry, there was an error placing your order. Please try again.";
+            setResponse(errorMsg);
+            speak(errorMsg);
+          });
         }, 2000);
         
       } else if (currentState.step === 'awaiting_address') {
@@ -749,7 +760,19 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
 
   const placeVoiceOrder = async (state, paymentMethod) => {
     try {
+      if (!state || !state.selectedItem) {
+        throw new Error('Invalid order state');
+      }
+      
       const { selectedItem, quantity, name, phone, address } = state;
+      
+      // Validate required fields
+      if (!quantity || quantity <= 0) {
+        throw new Error('Invalid quantity');
+      }
+      if (!name || !phone || !address) {
+        throw new Error('Missing customer information');
+      }
       
       const msg = `Placing your order for ${quantity} ${selectedItem.name}. Please wait...`;
       setResponse(msg);
