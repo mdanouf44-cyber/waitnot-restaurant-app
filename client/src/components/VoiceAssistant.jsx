@@ -14,6 +14,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   const [conversationState, setConversationState] = useState(null); // For multi-turn conversation
   const [recommendedItems, setRecommendedItems] = useState([]);
   const recognitionRef = useRef(null);
+  const conversationStateRef = useRef(null); // Ref to track conversation state in callbacks
 
   // Helper function to speak text
   const speak = (text) => {
@@ -51,6 +52,11 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     }
   };
 
+  // Update ref whenever conversationState changes
+  useEffect(() => {
+    conversationStateRef.current = conversationState;
+  }, [conversationState]);
+
   useEffect(() => {
     // Check if browser supports speech recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -71,19 +77,22 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
 
         if (finalTranscript) {
           setTranscript(finalTranscript);
-          // Check for wake word
-          if (finalTranscript.toLowerCase().includes('hey aman') || 
-              finalTranscript.toLowerCase().includes('hey amaan') ||
-              finalTranscript.toLowerCase().includes('hey aman')) {
-            // Provide immediate feedback
-            setWakeWordDetected(true);
-            playBeep(); // Play beep sound
-            setResponse('🎤 Activated! I am listening...');
-            
-            // Speak confirmation after a short delay
-            setTimeout(() => {
-              speak('Yes, listening!');
-            }, 100);
+          
+          const lowerTranscript = finalTranscript.toLowerCase();
+          const hasWakeWord = lowerTranscript.includes('hey aman') || 
+                             lowerTranscript.includes('hey amaan') ||
+                             lowerTranscript.includes('hey aman');
+          
+          // If in conversation, process any response (no wake word needed)
+          // Otherwise, only process if wake word is detected
+          if (conversationStateRef.current || hasWakeWord) {
+            if (hasWakeWord) {
+              // Provide immediate feedback for wake word
+              setWakeWordDetected(true);
+              playBeep();
+              setResponse('🎤 Activated! I am listening...');
+              setTimeout(() => speak('Yes, listening!'), 100);
+            }
             
             processVoiceCommand(finalTranscript);
           }
