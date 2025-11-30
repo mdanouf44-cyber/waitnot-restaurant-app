@@ -284,15 +284,21 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       console.log('Has food request keywords:', hasFoodRequest);
       
-      // If there's a wake word, clear any existing conversation and start fresh
+      // If there's a wake word with food request, ALWAYS clear old state and start fresh
       const hasWakeWord = lowerCommand.includes('hey aman') || 
                          lowerCommand.includes('hey amaan');
       
-      if (hasWakeWord && hasFoodRequest) {
-        console.log('Wake word detected with food request - starting fresh conversation');
+      if (hasWakeWord) {
+        console.log('Wake word detected - clearing any old conversation state');
         saveConversationState(null); // Clear old state
-        await handleSpecificFoodRequest(lowerCommand);
-        return;
+        localStorage.removeItem('aman_conversation_state'); // Force clear
+        conversationStateRef.current = null;
+        
+        if (hasFoodRequest) {
+          console.log('Starting fresh food order conversation');
+          await handleSpecificFoodRequest(lowerCommand);
+          return;
+        }
       }
       
       if (!restaurantId && hasFoodRequest && !conversationStateRef.current) {
@@ -557,17 +563,27 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         if (currentState.requestedQuantity) {
           const quantity = currentState.requestedQuantity;
           const ratingText = topItem.averageRating ? ` with ${topItem.averageRating} stars rating` : '';
-          const msg = `Great! I've selected ${quantity} ${topItem.name} from ${topItem.restaurantName}${ratingText}. Now, please provide your delivery address.`;
+          
+          // Auto-fill user details
+          const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+          const userName = savedUser.name || 'Customer';
+          const userPhone = savedUser.phone || '9876543210';
+          const userAddress = savedUser.address || '123 Main Street, Mumbai';
+          
+          const msg = `Great! I've selected ${quantity} ${topItem.name} from ${topItem.restaurantName}${ratingText}. Placing your order with Cash on Delivery. Please wait...`;
           setResponse(msg);
           speak(msg);
           
-          const newState = {
-            step: 'awaiting_address',
-            selectedItem: topItem,
-            quantity: quantity,
-            preference: isVeg ? 'veg' : 'non-veg'
-          };
-          saveConversationState(newState);
+          // Place order directly
+          setTimeout(async () => {
+            await placeVoiceOrder({
+              selectedItem: topItem,
+              quantity: quantity,
+              name: userName,
+              phone: userPhone,
+              address: userAddress
+            }, 'cash');
+          }, 2000);
         } else {
           // Ask for quantity
           const ratingText = topItem.averageRating ? ` with ${topItem.averageRating} stars rating` : '';
@@ -595,17 +611,27 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         }
         
         const item = currentState.selectedItem;
-        const msg = `Perfect! ${quantity} ${item.name}. Now, please provide your delivery address.`;
+        
+        // Auto-fill user details from localStorage or use defaults
+        const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const userName = savedUser.name || 'Customer';
+        const userPhone = savedUser.phone || '9876543210';
+        const userAddress = savedUser.address || '123 Main Street, Mumbai';
+        
+        const msg = `Perfect! ${quantity} ${item.name}. Placing your order with Cash on Delivery. Please wait...`;
         setResponse(msg);
         speak(msg);
         
-        const newState = {
-          step: 'awaiting_address',
-          selectedItem: item,
-          quantity: quantity,
-          preference: currentState.preference
-        };
-        saveConversationState(newState);
+        // Place order directly with auto-filled details
+        setTimeout(async () => {
+          await placeVoiceOrder({
+            selectedItem: item,
+            quantity: quantity,
+            name: userName,
+            phone: userPhone,
+            address: userAddress
+          }, 'cash');
+        }, 2000);
         
       } else if (currentState.step === 'awaiting_address') {
         // Save address
