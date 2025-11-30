@@ -1,0 +1,14 @@
+after listening to our question it should as veg or non veg for ex "hey aman order me a pizza" 
+1)it should ask veg or non veg next it if selected one is not available it should say not available 
+1)give a option like say a for veg and b for non veg so that it can understand better
+2)if selected item is availabel it should ask for quantity
+3)the top rated product from the list which is filterd from the prompt will be selected
+4)selected item should be added to the cart
+5)fill the details based on profile ex name location etc
+6)proceed for payment
+6)choose COD
+7)place the order
+
+
+
+
