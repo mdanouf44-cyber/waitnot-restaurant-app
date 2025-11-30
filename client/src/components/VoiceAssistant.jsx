@@ -142,14 +142,10 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           if (result.isFinal) {
             console.log(`Speech result: "${transcript}" (confidence: ${(confidence * 100).toFixed(1)}%)`);
             
-            // Only accept results with confidence > 60%
-            if (confidence > 0.6) {
-              finalTranscript += transcript;
-              totalConfidence += confidence;
-              finalResultsCount++;
-            } else {
-              console.log(`Rejected low confidence result: "${transcript}" (${(confidence * 100).toFixed(1)}%)`);
-            }
+            // Accept all results (no confidence filtering)
+            finalTranscript += transcript;
+            totalConfidence += confidence;
+            finalResultsCount++;
           }
         }
 
