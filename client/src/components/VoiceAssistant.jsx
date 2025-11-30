@@ -24,8 +24,10 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   const [wakeWordDetected, setWakeWordDetected] = useState(false);
   const [conversationState, setConversationState] = useState(loadConversationState); // Load from localStorage
   const [recommendedItems, setRecommendedItems] = useState([]);
+  const [isSpeaking, setIsSpeaking] = useState(false); // Track if assistant is speaking
   const recognitionRef = useRef(null);
   const conversationStateRef = useRef(loadConversationState()); // Initialize ref with saved state
+  const isSpeakingRef = useRef(false); // Ref for isSpeaking to use in callbacks
 
   // Helper function to speak text
   const speak = (text) => {
@@ -39,6 +41,9 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       // Pause recognition while speaking to avoid feedback loop
       utterance.onstart = () => {
+        console.log('TTS started, stopping recognition');
+        setIsSpeaking(true);
+        isSpeakingRef.current = true;
         if (recognitionRef.current && isListening) {
           try {
             recognitionRef.current.stop();
@@ -48,17 +53,21 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         }
       };
       
-      // Resume recognition after speaking
+      // Resume recognition after speaking with longer delay
       utterance.onend = () => {
-        if (isListening) {
-          setTimeout(() => {
+        console.log('TTS ended, will restart recognition in 1 second');
+        setTimeout(() => {
+          setIsSpeaking(false);
+          isSpeakingRef.current = false;
+          if (isListening) {
             try {
               recognitionRef.current?.start();
+              console.log('Recognition restarted after TTS');
             } catch (e) {
               console.log('Could not restart recognition:', e);
             }
-          }, 500);
-        }
+          }
+        }, 1000); // Increased delay to 1 second
       };
       
       window.speechSynthesis.speak(utterance);
@@ -131,6 +140,12 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
 
         if (finalTranscript) {
           setTranscript(finalTranscript);
+          
+          // Don't process if assistant is currently speaking
+          if (isSpeakingRef.current) {
+            console.log('Ignoring transcript while assistant is speaking:', finalTranscript);
+            return;
+          }
           
           const lowerTranscript = finalTranscript.toLowerCase();
           const hasWakeWord = lowerTranscript.includes('hey aman') || 
