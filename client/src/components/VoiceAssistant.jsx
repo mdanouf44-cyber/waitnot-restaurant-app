@@ -151,8 +151,9 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = false; // Changed to false to only get final results
-      recognitionRef.current.lang = 'en-US';
+      recognitionRef.current.interimResults = false; // Only get final results for accuracy
+      recognitionRef.current.lang = 'en-IN'; // Changed to Indian English for better accent recognition
+      recognitionRef.current.maxAlternatives = 3; // Get multiple alternatives for better matching
 
       recognitionRef.current.onresult = (event) => {
         // CRITICAL: Don't process anything if assistant is speaking
@@ -615,48 +616,81 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       console.log('HandleFollowUp - Current step:', currentState.step);
       
       if (currentState.step === 'awaiting_veg_preference') {
-        // Determine veg/non-veg preference with improved recognition
+        // Advanced veg/non-veg preference detection with fuzzy matching
         const lowerCommand = command.toLowerCase().trim();
         
-        console.log('Checking veg preference in command:', lowerCommand);
+        console.log('🎤 Analyzing command:', lowerCommand);
         
-        // Enhanced non-veg detection with multiple variations
+        // Helper function for fuzzy string matching (Levenshtein distance)
+        const fuzzyMatch = (str, target, threshold = 2) => {
+          const distance = (s1, s2) => {
+            const costs = [];
+            for (let i = 0; i <= s1.length; i++) {
+              let lastValue = i;
+              for (let j = 0; j <= s2.length; j++) {
+                if (i === 0) costs[j] = j;
+                else if (j > 0) {
+                  let newValue = costs[j - 1];
+                  if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+                    newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                  costs[j - 1] = lastValue;
+                  lastValue = newValue;
+                }
+              }
+              if (i > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+          };
+          return distance(str, target) <= threshold;
+        };
+        
+        // Enhanced non-veg detection with phonetic variations
         const nonVegPatterns = [
-          'non vegetarian',
-          'non-vegetarian', 
-          'nonvegetarian',
-          'non veg',
-          'non-veg',
-          'nonveg',
-          'chicken',
-          'meat',
-          'beef',
-          'mutton',
-          'fish',
-          'egg'
+          'non vegetarian', 'non-vegetarian', 'nonvegetarian',
+          'non veg', 'non-veg', 'nonveg', 'non vej', 'non vedge',
+          'chicken', 'meat', 'beef', 'mutton', 'fish', 'egg',
+          'non vegeterian', 'non vegitarian' // Common misspellings
         ];
         
-        // Enhanced veg detection with multiple variations
+        // Enhanced veg detection with phonetic variations
         const vegPatterns = [
-          'vegetarian',
-          'veg ',
-          ' veg',
-          'veggie',
-          'vegetables',
-          'plant based',
-          'plant-based'
+          'vegetarian', 'vegeterian', 'vegitarian', // Phonetic variations
+          'veg', 'vedge', 'vej', 'veggie', 'veggies',
+          'vegetables', 'plant based', 'plant-based'
         ];
         
-        // Check for non-veg first (more specific)
-        const isNonVeg = nonVegPatterns.some(pattern => lowerCommand.includes(pattern));
+        // Check for explicit "non" prefix first (highest priority)
+        const hasNonPrefix = lowerCommand.includes('non ') || 
+                            lowerCommand.includes('non-') ||
+                            lowerCommand.startsWith('non');
         
-        // Check for veg only if not non-veg (to avoid confusion)
-        const isVeg = !isNonVeg && vegPatterns.some(pattern => lowerCommand.includes(pattern));
+        // Check for non-veg patterns
+        let isNonVeg = hasNonPrefix || nonVegPatterns.some(pattern => {
+          if (lowerCommand.includes(pattern)) return true;
+          // Fuzzy match for typos
+          const words = lowerCommand.split(/\s+/);
+          return words.some(word => fuzzyMatch(word, pattern.split(' ')[0]));
+        });
         
-        console.log('Detected - isVeg:', isVeg, 'isNonVeg:', isNonVeg);
+        // Check for veg patterns (only if not non-veg)
+        let isVeg = !isNonVeg && vegPatterns.some(pattern => {
+          if (lowerCommand.includes(pattern)) return true;
+          // Fuzzy match for typos
+          const words = lowerCommand.split(/\s+/);
+          return words.some(word => fuzzyMatch(word, pattern.split(' ')[0]));
+        });
+        
+        // Additional context: if command is very short, be more lenient
+        if (!isVeg && !isNonVeg && lowerCommand.length < 10) {
+          // Check for single word responses
+          if (lowerCommand.match(/\b(veg|vedge|vej)\b/)) isVeg = true;
+          if (lowerCommand.match(/\b(non|meat|chicken)\b/)) isNonVeg = true;
+        }
+        
+        console.log('✅ Detection result - isVeg:', isVeg, 'isNonVeg:', isNonVeg);
         
         if (!isVeg && !isNonVeg) {
-          const msg = "I didn't catch that. Please say vegetarian or non-vegetarian.";
+          const msg = "I didn't catch that. Please say clearly: vegetarian or non-vegetarian.";
           setResponse(msg);
           speak(msg);
           return;
