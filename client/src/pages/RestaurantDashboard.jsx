@@ -669,6 +669,29 @@ export default function RestaurantDashboard() {
                     {order.deliveryAddress && (
                       <p className="text-sm text-gray-600 mt-1">📍 {order.deliveryAddress}</p>
                     )}
+                    {/* Order Time */}
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-gray-500">
+                        🕐 Ordered: {new Date(order.createdAt).toLocaleString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </p>
+                      {(order.status === 'completed' || order.status === 'delivered') && order.updatedAt && (
+                        <p className="text-xs text-green-600 font-semibold">
+                          ✅ Completed: {new Date(order.updatedAt).toLocaleString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          })}
+                        </p>
+                      )}
+                    </div>
                     {/* Payment Status */}
                     <div className="flex items-center gap-2 mt-2">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
