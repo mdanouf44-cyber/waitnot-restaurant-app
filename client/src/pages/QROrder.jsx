@@ -297,6 +297,22 @@ export default function QROrder() {
                     <div className="p-4">
                       <h3 className="font-bold text-gray-800">{item.name}</h3>
                       <p className="text-sm text-gray-600">{item.description}</p>
+                      
+                      {/* Rating Display */}
+                      {item.averageRating > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-yellow-500">⭐</span>
+                          <span className="text-sm font-semibold text-gray-700">
+                            {item.averageRating}
+                          </span>
+                          {item.reviewCount > 0 && (
+                            <span className="text-xs text-gray-500">
+                              ({item.reviewCount} reviews)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      
                       <p className="text-lg font-bold text-primary mt-2">₹{item.price}</p>
                     </div>
                     

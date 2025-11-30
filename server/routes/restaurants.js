@@ -74,6 +74,24 @@ router.get('/:id', async (req, res) => {
     const restaurant = await restaurantDB.findById(req.params.id);
     if (!restaurant) return res.status(404).json({ error: 'Restaurant not found' });
     
+    // Add ratings to menu items
+    if (restaurant.menu && restaurant.menu.length > 0) {
+      const { reviewDB } = await import('../db.js');
+      
+      restaurant.menu = await Promise.all(restaurant.menu.map(async (item) => {
+        const reviews = await reviewDB.findByItem(req.params.id, item._id);
+        const averageRating = reviews.length > 0
+          ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+          : 0;
+        
+        return {
+          ...item,
+          averageRating: parseFloat(averageRating),
+          reviewCount: reviews.length
+        };
+      }));
+    }
+    
     const { password, ...rest } = restaurant;
     res.json(rest);
   } catch (error) {
