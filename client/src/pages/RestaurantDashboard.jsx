@@ -681,20 +681,20 @@ export default function RestaurantDashboard() {
 
         {activeTab === 'delivery' && (
           <div className="space-y-3 sm:space-y-4">
-            <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-800">Home Delivery Orders</h2>
-              <p className="text-gray-600 text-xs sm:text-sm">Total: {deliveryOrders.length} orders</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">Home Delivery Orders</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total: {deliveryOrders.length} orders</p>
             </div>
             {deliveryOrders.map((order) => (
-              <div key={order._id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+              <div key={order._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                       🚚 Delivery Order
                     </h3>
-                    <p className="text-sm text-gray-600">{order.customerName} • {order.customerPhone}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{order.customerName} • {order.customerPhone}</p>
                     {order.deliveryAddress && (
-                      <p className="text-sm text-gray-600 mt-1">📍 {order.deliveryAddress}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">📍 {order.deliveryAddress}</p>
                     )}
                     {/* Order Time */}
                     <div className="mt-2 space-y-1">
@@ -797,9 +797,9 @@ export default function RestaurantDashboard() {
 
         {activeTab === 'dine-in' && (
           <div className="space-y-3 sm:space-y-4">
-            <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-800">Dine-In / Table Orders</h2>
-              <p className="text-gray-600 text-xs sm:text-sm">Total: {dineInOrders.length} orders</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">Dine-In / Table Orders</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total: {dineInOrders.length} orders</p>
             </div>
             
             {/* Group orders by table - only show active orders (not completed) */}
@@ -852,9 +852,9 @@ export default function RestaurantDashboard() {
                   </div>
 
                   {/* Combined Bill */}
-                  <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
                     <div className="mb-4">
-                      <p className="text-sm text-gray-600">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
                       <p className="text-xs text-gray-500">{new Date(firstOrder.createdAt).toLocaleTimeString()}</p>
                       {/* Payment Status for Table */}
                       <div className="flex items-center gap-2 mt-2">
@@ -920,7 +920,7 @@ export default function RestaurantDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {restaurant.menu.map((item) => (
-                <div key={item._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div key={item._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   {/* Item Image */}
                   {item.image && (
                     <div className="h-32 bg-gray-100">
@@ -1583,9 +1583,9 @@ export default function RestaurantDashboard() {
 
         {activeTab === 'history' && (
           <div className="space-y-3 sm:space-y-4">
-            <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-800">📜 Order History</h2>
-              <p className="text-gray-600 text-xs sm:text-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">📜 Order History</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
                 Completed orders: {orders.filter(o => o.status === 'completed').length}
               </p>
             </div>
@@ -1645,7 +1645,7 @@ export default function RestaurantDashboard() {
                 });
                 
                 return (
-                  <div key={groupIdx} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <div key={groupIdx} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-gray-800">
