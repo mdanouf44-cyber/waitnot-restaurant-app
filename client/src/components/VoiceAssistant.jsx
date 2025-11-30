@@ -1021,8 +1021,8 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         // Clear queue
         speechQueueRef.current = [];
         
-        // Navigate
-        window.location.href = `/restaurant/${selectedItem.restaurantId}`;
+        // Navigate to order history page
+        window.location.href = '/orders';
       }, 8000);
       
     } catch (error) {
