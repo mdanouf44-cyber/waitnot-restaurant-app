@@ -25,6 +25,8 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   const [conversationState, setConversationState] = useState(loadConversationState); // Load from localStorage
   const [recommendedItems, setRecommendedItems] = useState([]);
   const [isSpeaking, setIsSpeaking] = useState(false); // Track if assistant is speaking
+  const [showTextInput, setShowTextInput] = useState(false); // Show text input fallback
+  const [textCommand, setTextCommand] = useState(''); // Text command input
   const recognitionRef = useRef(null);
   const conversationStateRef = useRef(loadConversationState()); // Initialize ref with saved state
   const isSpeakingRef = useRef(false); // Ref for isSpeaking to use in callbacks
@@ -175,12 +177,30 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     conversationStateRef.current = conversationState;
   }, [conversationState]);
 
+  // Handle text command submission
+  const handleTextCommand = (e) => {
+    e.preventDefault();
+    if (textCommand.trim()) {
+      setTranscript(textCommand);
+      processVoiceCommand(textCommand);
+      setTextCommand('');
+      setShowTextInput(false);
+    }
+  };
+
   useEffect(() => {
     // Check multiple ways to access Speech Recognition API for cross-browser compatibility
     const SpeechRecognition = window.SpeechRecognition || 
                               window.webkitSpeechRecognition || 
                               window.mozSpeechRecognition || 
                               window.msSpeechRecognition;
+    
+    // Mobile-specific checks
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    console.log('Device info:', { isMobile, isIOS, isAndroid, isNative: Capacitor.isNativePlatform() });
     
     // Check if we're in a secure context (required for microphone access)
     const isSecureContext = window.isSecureContext || 
@@ -191,12 +211,14 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     
     if (!SpeechRecognition) {
       console.error('Speech Recognition not supported in this browser');
+      // Don't set isSupported to false - we'll show text input fallback
       setIsSupported(false);
       return;
     }
     
     if (!isSecureContext && !Capacitor.isNativePlatform()) {
       console.error('Speech Recognition requires HTTPS or native app');
+      // Don't set isSupported to false - we'll show text input fallback
       setIsSupported(false);
       return;
     }
@@ -409,8 +431,23 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       } catch (error) {
         console.error('Error starting recognition:', error);
         setPermissionDenied(true);
-        const errorMsg = 'Could not start voice recognition. Please try again.';
+        
+        // Provide helpful error message based on error type
+        let errorMsg = 'Could not start voice recognition. ';
+        if (error.message && error.message.includes('not-allowed')) {
+          errorMsg += 'Please allow microphone access in your browser settings.';
+        } else if (error.message && error.message.includes('not-supported')) {
+          errorMsg += 'Voice recognition is not supported on this browser. Try Chrome or Safari.';
+        } else {
+          errorMsg += 'Please check your microphone permissions and try again.';
+        }
+        
         setResponse(errorMsg);
+        
+        // Show alert on mobile for better visibility
+        if (Capacitor.isNativePlatform() || window.innerWidth < 768) {
+          alert(errorMsg);
+        }
       }
     }
   };
@@ -1052,27 +1089,72 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     }
   };
 
-  // Show message if not supported
+  // Show text input fallback if voice not supported
   if (!isSupported) {
     return (
-      <div className="fixed bottom-32 left-4 z-50">
-        <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg text-xs max-w-xs">
-          <p className="font-bold mb-2">🎤 Voice Assistant</p>
-          <p className="mb-2">Voice commands are not available on this browser/device.</p>
-          <div className="text-green-300 mb-1">✅ Supported:</div>
-          <ul className="text-xs ml-4 mb-2">
-            <li>• Chrome (Android/Desktop)</li>
-            <li>• Safari (iOS/macOS)</li>
-            <li>• Edge (Desktop)</li>
-            <li>• Waitnot APK</li>
-          </ul>
-          <div className="text-red-300 mb-1">❌ Not supported:</div>
-          <ul className="text-xs ml-4">
-            <li>• Firefox</li>
-            <li>• Older browsers</li>
-            <li>• HTTP sites (use HTTPS)</li>
-          </ul>
-        </div>
+      <div className="fixed bottom-20 sm:bottom-32 left-4 right-4 sm:right-auto z-50 max-w-sm">
+        {/* Text Input Button */}
+        <button
+          onClick={() => setShowTextInput(!showTextInput)}
+          className="p-4 sm:p-4 md:p-5 rounded-full shadow-2xl bg-primary hover:bg-red-600 text-white mb-2"
+          aria-label="Type your order"
+          style={{ touchAction: 'manipulation' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+
+        {/* Text Input Panel */}
+        {showTextInput && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 border border-gray-200 dark:border-gray-700 mb-2">
+            <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="font-bold text-gray-800 dark:text-white">Aman Assistant</h3>
+            </div>
+            
+            <form onSubmit={handleTextCommand} className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                  Type your order:
+                </label>
+                <input
+                  type="text"
+                  value={textCommand}
+                  onChange={(e) => setTextCommand(e.target.value)}
+                  placeholder="e.g., Hey Aman, I want pizza"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  autoFocus
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={!textCommand.trim() || isProcessing}
+                className="w-full bg-primary hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? 'Processing...' : 'Send Order'}
+              </button>
+            </form>
+
+            {/* Response */}
+            {response && (
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Waitnot:</p>
+                <p className="text-sm text-primary font-medium bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                  {response}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Info Message */}
+        {!showTextInput && (
+          <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg text-xs">
+            <p className="font-bold mb-1">💬 Text Assistant Available</p>
+            <p className="text-gray-300">Voice not supported. Use text input instead!</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -1088,7 +1170,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   };
 
   return (
-    <div className="fixed bottom-32 left-4 z-50 flex flex-col gap-2">
+    <div className="fixed bottom-20 sm:bottom-32 left-4 z-50 flex flex-col gap-2">
       {/* Reset Button (only show if in conversation) */}
       {conversationState && (
         <button
@@ -1100,11 +1182,24 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         </button>
       )}
       
-      {/* Voice Button */}
+      {/* Text Input Button (Alternative to voice) */}
+      <button
+        onClick={() => setShowTextInput(!showTextInput)}
+        className="p-3 sm:p-3 md:p-4 rounded-full shadow-xl bg-blue-500 hover:bg-blue-600 text-white"
+        aria-label="Type your order"
+        title="Type your order instead"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+      
+      {/* Voice Button - Larger on mobile */}
       <button
         onClick={toggleListening}
         disabled={permissionDenied}
-        className={`p-3 sm:p-4 rounded-full shadow-lg transition-all duration-300 relative ${
+        className={`p-4 sm:p-4 md:p-5 rounded-full shadow-2xl transition-all duration-300 relative ${
           wakeWordDetected
             ? 'bg-green-500 hover:bg-green-600 scale-110'
             : isListening
@@ -1114,8 +1209,9 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
             : 'bg-primary hover:bg-red-600'
         } text-white`}
         aria-label={isListening ? 'Stop listening' : 'Start listening'}
+        style={{ touchAction: 'manipulation' }} // Better mobile touch
       >
-        {isListening ? <Mic size={24} className="sm:w-7 sm:h-7" /> : <MicOff size={24} className="sm:w-7 sm:h-7" />}
+        {isListening ? <Mic size={28} className="sm:w-7 sm:h-7 md:w-8 md:h-8" /> : <MicOff size={28} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />}
         
         {/* Wake word detected indicator */}
         {wakeWordDetected && (
@@ -1123,8 +1219,57 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         )}
       </button>
 
+      {/* Text Input Panel */}
+      {showTextInput && (
+        <div className="absolute bottom-20 left-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="font-bold text-gray-800 dark:text-white">Aman Assistant</h3>
+            <button
+              onClick={() => setShowTextInput(false)}
+              className="ml-auto text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <form onSubmit={handleTextCommand} className="space-y-3">
+            <div>
+              <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                Type your order:
+              </label>
+              <input
+                type="text"
+                value={textCommand}
+                onChange={(e) => setTextCommand(e.target.value)}
+                placeholder="e.g., Hey Aman, I want pizza"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                autoFocus
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={!textCommand.trim() || isProcessing}
+              className="w-full bg-primary hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? 'Processing...' : 'Send Order'}
+            </button>
+          </form>
+
+          {/* Response */}
+          {response && (
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Waitnot:</p>
+              <p className="text-sm text-primary font-medium bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                {response}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Voice Status Panel */}
-      {(isListening || transcript || response) && (
+      {!showTextInput && (isListening || transcript || response) && (
         <div className="absolute bottom-20 left-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
           {/* Header */}
           <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
