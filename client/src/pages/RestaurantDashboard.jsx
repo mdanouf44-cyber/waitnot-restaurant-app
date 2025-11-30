@@ -698,7 +698,7 @@ export default function RestaurantDashboard() {
                     )}
                     {/* Order Time */}
                     <div className="mt-2 space-y-1">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         🕐 Ordered: {new Date(order.createdAt).toLocaleString('en-IN', {
                           day: 'numeric',
                           month: 'short',
@@ -729,7 +729,7 @@ export default function RestaurantDashboard() {
                         {order.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
                       </span>
                       {order.paymentMethod && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           via {order.paymentMethod === 'razorpay' ? 'Online' : order.paymentMethod.toUpperCase()}
                         </span>
                       )}
@@ -790,7 +790,7 @@ export default function RestaurantDashboard() {
               </div>
             ))}
             {deliveryOrders.length === 0 && (
-              <div className="text-center py-12 text-gray-500">No delivery orders yet</div>
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">No delivery orders yet</div>
             )}
           </div>
         )}
@@ -855,7 +855,7 @@ export default function RestaurantDashboard() {
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
                     <div className="mb-4">
                       <p className="text-sm text-gray-600 dark:text-gray-400">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
-                      <p className="text-xs text-gray-500">{new Date(firstOrder.createdAt).toLocaleTimeString()}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(firstOrder.createdAt).toLocaleTimeString()}</p>
                       {/* Payment Status for Table */}
                       <div className="flex items-center gap-2 mt-2">
                         {tableOrders.some(o => o.paymentStatus === 'paid') ? (
@@ -868,7 +868,7 @@ export default function RestaurantDashboard() {
                           </span>
                         )}
                         {firstOrder.paymentMethod && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             via {firstOrder.paymentMethod === 'razorpay' ? 'Online' : firstOrder.paymentMethod.toUpperCase()}
                           </span>
                         )}
@@ -903,7 +903,7 @@ export default function RestaurantDashboard() {
             })}
             
             {dineInOrders.length === 0 && (
-              <div className="text-center py-12 text-gray-500">No table orders yet</div>
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">No table orders yet</div>
             )}
           </div>
         )}
@@ -937,7 +937,7 @@ export default function RestaurantDashboard() {
                   
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-gray-800">{item.name}</h3>
+                      <h3 className="font-bold text-gray-800 dark:text-white">{item.name}</h3>
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
@@ -1036,7 +1036,7 @@ export default function RestaurantDashboard() {
                             onChange={(e) => setImageUploadMethod(e.target.value)}
                             className="w-4 h-4"
                           />
-                          <span className="text-gray-700">Image URL</span>
+                          <span className="text-gray-700 dark:text-gray-300">Image URL</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -1046,7 +1046,7 @@ export default function RestaurantDashboard() {
                             onChange={(e) => setImageUploadMethod(e.target.value)}
                             className="w-4 h-4"
                           />
-                          <span className="text-gray-700">Upload Image</span>
+                          <span className="text-gray-700 dark:text-gray-300">Upload Image</span>
                         </label>
                       </div>
 
@@ -1081,7 +1081,7 @@ export default function RestaurantDashboard() {
                               {imageFile ? (
                                 <div>
                                   <p className="text-green-600 font-semibold mb-1">✓ {imageFile.name}</p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
                                     {(imageFile.size / 1024).toFixed(2)} KB
                                   </p>
                                   <button
@@ -1102,7 +1102,7 @@ export default function RestaurantDashboard() {
                                   <p className="text-gray-700 font-semibold mb-1">
                                     Click to upload image
                                   </p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
                                     JPG, PNG, WebP (Max 2MB)
                                   </p>
                                 </div>
@@ -1137,7 +1137,7 @@ export default function RestaurantDashboard() {
                           checked={menuForm.isVeg}
                           onChange={(e) => setMenuForm({...menuForm, isVeg: e.target.checked})}
                         />
-                        <span className="text-gray-700">Vegetarian</span>
+                        <span className="text-gray-700 dark:text-gray-300">Vegetarian</span>
                       </label>
                     </div>
                     <div className="flex gap-4">
@@ -1262,7 +1262,7 @@ export default function RestaurantDashboard() {
             </div>
 
             {reels.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 <Film size={48} className="mx-auto mb-4 text-gray-400" />
                 <p>No reels yet. Create your first food reel!</p>
               </div>
@@ -1287,7 +1287,7 @@ export default function RestaurantDashboard() {
                             onChange={(e) => setUploadMethod(e.target.value)}
                             className="w-4 h-4"
                           />
-                          <span className="text-gray-700">Video URL</span>
+                          <span className="text-gray-700 dark:text-gray-300">Video URL</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -1344,7 +1344,7 @@ export default function RestaurantDashboard() {
                             {videoFile ? (
                               <div>
                                 <p className="text-green-600 font-semibold mb-1">✓ {videoFile.name}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                                 </p>
                                 <button
@@ -1363,7 +1363,7 @@ export default function RestaurantDashboard() {
                                 <p className="text-gray-700 font-semibold mb-1">
                                   Click to upload video
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                   MP4, WebM, MOV (Max 5MB)
                                 </p>
                                 <p className="text-xs text-orange-600 mt-1">
@@ -1448,10 +1448,10 @@ export default function RestaurantDashboard() {
                     {/* Display selected dish details */}
                     {reelForm.dishName && (
                       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
                           <strong>Selected Dish:</strong> {reelForm.dishName}
                         </p>
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
                           <strong>Price:</strong> ₹{reelForm.price}
                         </p>
                       </div>
@@ -1497,7 +1497,7 @@ export default function RestaurantDashboard() {
             </div>
 
             <div className="flex items-center justify-between mb-4 sm:mb-6 flex-wrap gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
                 Table QR Codes ({restaurant.tables || 0} tables)
               </h2>
               <div className="flex gap-2">
@@ -1648,7 +1648,7 @@ export default function RestaurantDashboard() {
                   <div key={groupIdx} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-800">
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                           {isDineIn ? `🍽️ Table ${firstOrder.tableNumber}` : '🚚 Delivery'}
                         </h3>
                         <p className="text-sm text-gray-600">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
@@ -1664,7 +1664,7 @@ export default function RestaurantDashboard() {
                           </p>
                         )}
                       </div>
-                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800 dark:text-white">
                         Completed
                       </span>
                     </div>
@@ -1691,7 +1691,7 @@ export default function RestaurantDashboard() {
             })()}
             
             {orders.filter(o => o.status === 'completed').length === 0 && (
-              <div className="text-center py-12 text-gray-500">No completed orders yet</div>
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">No completed orders yet</div>
             )}
           </div>
         )}
@@ -1782,7 +1782,7 @@ function PaymentSettingsTab({ restaurant, setRestaurant }) {
             />
             <CreditCard size={24} className="text-primary" />
             <div className="flex-1">
-              <p className="font-semibold text-gray-800">Cash on Delivery</p>
+              <p className="font-semibold text-gray-800 dark:text-white">Cash on Delivery</p>
               <p className="text-sm text-gray-600">Accept cash payments from customers</p>
             </div>
           </label>
@@ -1797,7 +1797,7 @@ function PaymentSettingsTab({ restaurant, setRestaurant }) {
             />
             <CreditCard size={24} className="text-primary" />
             <div className="flex-1">
-              <p className="font-semibold text-gray-800">UPI Payment</p>
+              <p className="font-semibold text-gray-800 dark:text-white">UPI Payment</p>
               <p className="text-sm text-gray-600">Accept online UPI payments</p>
             </div>
           </label>
