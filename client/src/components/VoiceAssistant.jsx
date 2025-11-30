@@ -126,10 +126,16 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+      recognitionRef.current.interimResults = false; // Changed to false to only get final results
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event) => {
+        // CRITICAL: Don't process anything if assistant is speaking
+        if (isSpeakingRef.current) {
+          console.log('Recognition triggered while speaking - ignoring all results');
+          return;
+        }
+        
         let finalTranscript = '';
         let totalConfidence = 0;
         let finalResultsCount = 0;
