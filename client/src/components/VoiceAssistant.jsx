@@ -357,6 +357,12 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
 
   const handleSpecificFoodRequest = async (command) => {
     try {
+      // ALWAYS clear old state at the start of a new food request
+      console.log('Starting new food request - clearing all old state');
+      localStorage.removeItem('aman_conversation_state');
+      conversationStateRef.current = null;
+      setConversationState(null);
+      
       console.log('Processing food request:', command);
       
       // Extract quantity from command
@@ -447,6 +453,12 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
 
   const handleRecommendationRequest = async () => {
     try {
+      // ALWAYS clear old state at the start of a new recommendation request
+      console.log('Starting new recommendation request - clearing all old state');
+      localStorage.removeItem('aman_conversation_state');
+      conversationStateRef.current = null;
+      setConversationState(null);
+      
       // Fetch all restaurants with their menus
       const { data: restaurants } = await axios.get('/api/restaurants');
       
@@ -810,7 +822,11 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       setResponse(successMsg);
       speak(successMsg);
       
-      saveConversationState(null);
+      // Clear all conversation state after successful order
+      console.log('Order placed successfully - clearing conversation state');
+      localStorage.removeItem('aman_conversation_state');
+      conversationStateRef.current = null;
+      setConversationState(null);
       
       // Redirect to order confirmation after 5 seconds
       setTimeout(() => {
@@ -822,7 +838,12 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       const errorMsg = "Sorry, there was an error placing your order. Please try again or order manually.";
       setResponse(errorMsg);
       speak(errorMsg);
-      saveConversationState(null);
+      
+      // Clear conversation state on error
+      console.log('Order error - clearing conversation state');
+      localStorage.removeItem('aman_conversation_state');
+      conversationStateRef.current = null;
+      setConversationState(null);
     }
   };
 
