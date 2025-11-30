@@ -683,7 +683,7 @@ export default function RestaurantDashboard() {
           <div className="space-y-3 sm:space-y-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">Home Delivery Orders</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total: {deliveryOrders.length} orders</p>
+              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">Total: {deliveryOrders.length} orders</p>
             </div>
             {deliveryOrders.map((order) => (
               <div key={order._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
@@ -692,13 +692,13 @@ export default function RestaurantDashboard() {
                     <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                       🚚 Delivery Order
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{order.customerName} • {order.customerPhone}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{order.customerName} • {order.customerPhone}</p>
                     {order.deliveryAddress && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">📍 {order.deliveryAddress}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">📍 {order.deliveryAddress}</p>
                     )}
                     {/* Order Time */}
                     <div className="mt-2 space-y-1">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-300">
                         🕐 Ordered: {new Date(order.createdAt).toLocaleString('en-IN', {
                           day: 'numeric',
                           month: 'short',
@@ -729,7 +729,7 @@ export default function RestaurantDashboard() {
                         {order.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
                       </span>
                       {order.paymentMethod && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-500 dark:text-gray-300">
                           via {order.paymentMethod === 'razorpay' ? 'Online' : order.paymentMethod.toUpperCase()}
                         </span>
                       )}
@@ -790,7 +790,7 @@ export default function RestaurantDashboard() {
               </div>
             ))}
             {deliveryOrders.length === 0 && (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">No delivery orders yet</div>
+              <div className="text-center py-12 text-gray-500 dark:text-gray-300">No delivery orders yet</div>
             )}
           </div>
         )}
@@ -799,7 +799,7 @@ export default function RestaurantDashboard() {
           <div className="space-y-3 sm:space-y-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">Dine-In / Table Orders</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total: {dineInOrders.length} orders</p>
+              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">Total: {dineInOrders.length} orders</p>
             </div>
             
             {/* Group orders by table - only show active orders (not completed) */}
@@ -854,8 +854,8 @@ export default function RestaurantDashboard() {
                   {/* Combined Bill */}
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
                     <div className="mb-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(firstOrder.createdAt).toLocaleTimeString()}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{firstOrder.customerName} • {firstOrder.customerPhone}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-300">{new Date(firstOrder.createdAt).toLocaleTimeString()}</p>
                       {/* Payment Status for Table */}
                       <div className="flex items-center gap-2 mt-2">
                         {tableOrders.some(o => o.paymentStatus === 'paid') ? (
@@ -868,7 +868,7 @@ export default function RestaurantDashboard() {
                           </span>
                         )}
                         {firstOrder.paymentMethod && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-gray-500 dark:text-gray-300">
                             via {firstOrder.paymentMethod === 'razorpay' ? 'Online' : firstOrder.paymentMethod.toUpperCase()}
                           </span>
                         )}
@@ -903,7 +903,7 @@ export default function RestaurantDashboard() {
             })}
             
             {dineInOrders.length === 0 && (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">No table orders yet</div>
+              <div className="text-center py-12 text-gray-500 dark:text-gray-300">No table orders yet</div>
             )}
           </div>
         )}
@@ -1081,7 +1081,7 @@ export default function RestaurantDashboard() {
                               {imageFile ? (
                                 <div>
                                   <p className="text-green-600 font-semibold mb-1">✓ {imageFile.name}</p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500 dark:text-gray-300">
                                     {(imageFile.size / 1024).toFixed(2)} KB
                                   </p>
                                   <button
@@ -1102,7 +1102,7 @@ export default function RestaurantDashboard() {
                                   <p className="text-gray-700 font-semibold mb-1">
                                     Click to upload image
                                   </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500 dark:text-gray-300">
                                     JPG, PNG, WebP (Max 2MB)
                                   </p>
                                 </div>
@@ -1262,7 +1262,7 @@ export default function RestaurantDashboard() {
             </div>
 
             {reels.length === 0 && (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-300">
                 <Film size={48} className="mx-auto mb-4 text-gray-400" />
                 <p>No reels yet. Create your first food reel!</p>
               </div>
@@ -1344,7 +1344,7 @@ export default function RestaurantDashboard() {
                             {videoFile ? (
                               <div>
                                 <p className="text-green-600 font-semibold mb-1">✓ {videoFile.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500 dark:text-gray-300">
                                   {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                                 </p>
                                 <button
@@ -1363,7 +1363,7 @@ export default function RestaurantDashboard() {
                                 <p className="text-gray-700 font-semibold mb-1">
                                   Click to upload video
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500 dark:text-gray-300">
                                   MP4, WebM, MOV (Max 5MB)
                                 </p>
                                 <p className="text-xs text-orange-600 mt-1">
@@ -1585,7 +1585,7 @@ export default function RestaurantDashboard() {
           <div className="space-y-3 sm:space-y-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">📜 Order History</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+              <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                 Completed orders: {orders.filter(o => o.status === 'completed').length}
               </p>
             </div>
@@ -1691,7 +1691,7 @@ export default function RestaurantDashboard() {
             })()}
             
             {orders.filter(o => o.status === 'completed').length === 0 && (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">No completed orders yet</div>
+              <div className="text-center py-12 text-gray-500 dark:text-gray-300">No completed orders yet</div>
             )}
           </div>
         )}
