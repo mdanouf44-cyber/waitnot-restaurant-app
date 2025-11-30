@@ -55,7 +55,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       // Resume recognition after speaking with longer delay
       utterance.onend = () => {
-        console.log('TTS ended, will restart recognition in 1 second');
+        console.log('TTS ended, will restart recognition in 2 seconds');
         setTimeout(() => {
           setIsSpeaking(false);
           isSpeakingRef.current = false;
@@ -67,7 +67,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
               console.log('Could not restart recognition:', e);
             }
           }
-        }, 1000); // Increased delay to 1 second
+        }, 2000); // Increased delay to 2 seconds
       };
       
       window.speechSynthesis.speak(utterance);
@@ -256,10 +256,17 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   const processVoiceCommand = async (command) => {
     setIsProcessing(true);
     try {
+      // Reload conversation state from localStorage to ensure we have the latest
+      const latestState = loadConversationState();
+      if (latestState) {
+        conversationStateRef.current = latestState;
+        setConversationState(latestState);
+      }
+      
       const lowerCommand = command.toLowerCase();
       console.log('Processing command:', lowerCommand);
       console.log('Restaurant ID:', restaurantId);
-      console.log('Conversation state:', conversationState);
+      console.log('Conversation state:', latestState || conversationState);
       
       // If we're in a conversation state, handle follow-up
       if (conversationState) {
