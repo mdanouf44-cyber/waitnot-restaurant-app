@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, QrCode, LogOut, Film, Eye, Heart, X, CreditCard } from 'lucide-react';
+import { Plus, Edit, Trash2, QrCode, LogOut, Film, Eye, Heart, X, CreditCard, Moon, Sun } from 'lucide-react';
 import axios from 'axios';
 import io from 'socket.io-client';
 import BillModal from '../components/BillModal';
@@ -16,6 +16,10 @@ export default function RestaurantDashboard() {
   const [showReelForm, setShowReelForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [editingReel, setEditingReel] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('restaurantDarkMode');
+    return saved ? JSON.parse(saved) : false;
+  });
   const [menuForm, setMenuForm] = useState({
     name: '', price: '', category: 'Starters', description: '', isVeg: true, image: ''
   });
@@ -29,6 +33,20 @@ export default function RestaurantDashboard() {
   const [imageFile, setImageFile] = useState(null);
   const [showBillModal, setShowBillModal] = useState(false);
   const [currentBill, setCurrentBill] = useState(null);
+
+  // Theme toggle effect
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('restaurantDarkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+  };
 
   useEffect(() => {
     const restaurantId = localStorage.getItem('restaurantId');
@@ -577,14 +595,23 @@ export default function RestaurantDashboard() {
   const dineInOrders = orders.filter(order => order.orderType === 'dine-in');
 
   return (
-    <div className="min-h-screen bg-white pb-8">
-      <nav className="bg-white shadow-md p-3 sm:p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-8">
+      <nav className="bg-white dark:bg-gray-800 shadow-md p-3 sm:p-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-primary truncate">{restaurant.name}</h1>
-          <button onClick={logout} className="flex items-center gap-1 sm:gap-2 text-gray-700 hover:text-primary text-sm sm:text-base">
-            <LogOut size={18} className="sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button 
+              onClick={toggleTheme} 
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button onClick={logout} className="flex items-center gap-1 sm:gap-2 text-gray-700 dark:text-gray-300 hover:text-primary text-sm sm:text-base">
+              <LogOut size={18} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -593,7 +620,7 @@ export default function RestaurantDashboard() {
           <button
             onClick={() => setActiveTab('delivery')}
             className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg font-semibold whitespace-nowrap text-sm sm:text-base ${
-              activeTab === 'delivery' ? 'bg-primary text-white' : 'bg-white text-gray-700'
+              activeTab === 'delivery' ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
             }`}
           >
             <span className="hidden sm:inline">Delivery Orders</span>
