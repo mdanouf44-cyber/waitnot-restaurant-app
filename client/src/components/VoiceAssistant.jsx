@@ -221,12 +221,24 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       recognitionRef.current?.stop();
       setIsListening(false);
     } else {
-      // Request microphone permission on mobile/APK
+      // Request microphone permission with noise reduction constraints
       try {
         // For Capacitor/APK, permissions are handled via AndroidManifest
-        // For web, request permission
+        // For web, request permission with audio constraints
         if (!Capacitor.isNativePlatform() && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
+          // Request microphone with noise suppression and echo cancellation
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              echoCancellation: true,        // Cancel echo from speakers
+              noiseSuppression: true,        // Reduce background noise
+              autoGainControl: true,         // Automatic volume adjustment
+              sampleRate: 48000,             // Higher quality audio
+              channelCount: 1                // Mono audio (sufficient for voice)
+            }
+          });
+          
+          console.log('Microphone initialized with noise reduction');
+          console.log('Audio settings:', stream.getAudioTracks()[0].getSettings());
         }
         
         recognitionRef.current?.start();
