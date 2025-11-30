@@ -443,8 +443,27 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     try {
       if (conversationState.step === 'awaiting_veg_preference') {
         // Determine veg/non-veg preference
-        const isVeg = command.includes('veg') && !command.includes('non');
-        const isNonVeg = command.includes('non') || command.includes('chicken') || command.includes('meat');
+        // Look for the LAST occurrence to get user's actual answer (not the question echo)
+        const words = command.split(/\s+/);
+        const lastFewWords = words.slice(-5).join(' '); // Check last 5 words only
+        
+        console.log('Checking veg preference in last words:', lastFewWords);
+        
+        // Check for non-veg first (more specific)
+        const isNonVeg = lastFewWords.includes('non-veg') || 
+                        lastFewWords.includes('non veg') ||
+                        lastFewWords.includes('nonveg') ||
+                        lastFewWords.includes('chicken') || 
+                        lastFewWords.includes('meat') ||
+                        (lastFewWords.includes('not') && lastFewWords.includes('veg'));
+        
+        // Check for veg (but not if it's part of "non-veg")
+        const isVeg = !isNonVeg && (
+          lastFewWords.includes('vegetarian') || 
+          lastFewWords.includes('veg')
+        );
+        
+        console.log('Detected - isVeg:', isVeg, 'isNonVeg:', isNonVeg);
         
         if (!isVeg && !isNonVeg) {
           const msg = "I didn't catch that. Please say 'vegetarian' or 'non-vegetarian'.";
