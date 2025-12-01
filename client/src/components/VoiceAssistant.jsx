@@ -999,9 +999,60 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       speak(placingMsg);
       
       // Get user info from localStorage
-      const userToken = localStorage.getItem('userToken');
-      const userData = localStorage.getItem('user');
-      const user = userData ? JSON.parse(userData) : null;
+      let userToken = localStorage.getItem('userToken');
+      let userData = localStorage.getItem('user');
+      let user = userData ? JSON.parse(userData) : null;
+      
+      console.log('=== Voice Order - User Check ===');
+      console.log('User Token:', userToken ? 'Present' : 'Missing');
+      console.log('User Data:', user);
+      
+      // If user is not logged in, try to auto-login or create guest account
+      if (!user || !userToken) {
+        console.log('User not logged in - attempting auto-login with phone:', phone);
+        
+        try {
+          // Try to login with phone number
+          const loginResponse = await axios.post('/api/users/login', {
+            username: phone,
+            password: 'voice123' // Default password for voice orders
+          });
+          
+          if (loginResponse.data.token) {
+            // Login successful
+            userToken = loginResponse.data.token;
+            user = loginResponse.data.user;
+            localStorage.setItem('userToken', userToken);
+            localStorage.setItem('user', JSON.stringify(user));
+            console.log('Auto-login successful:', user);
+          }
+        } catch (loginError) {
+          console.log('Auto-login failed, creating new account');
+          
+          // If login fails, register new user
+          try {
+            const registerResponse = await axios.post('/api/users/register', {
+              username: phone,
+              password: 'voice123',
+              name: name,
+              phone: phone,
+              address: address,
+              email: `${phone}@voice.waitnot.com`
+            });
+            
+            if (registerResponse.data.token) {
+              userToken = registerResponse.data.token;
+              user = registerResponse.data.user;
+              localStorage.setItem('userToken', userToken);
+              localStorage.setItem('user', JSON.stringify(user));
+              console.log('Auto-registration successful:', user);
+            }
+          } catch (registerError) {
+            console.error('Auto-registration failed:', registerError);
+            // Continue without user - order will be created without userId
+          }
+        }
+      }
       
       // Create order via API
       const orderData = {
@@ -1022,8 +1073,10 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         userId: user?._id || user?.id // Add userId if user is logged in
       };
       
-      console.log('Placing order:', orderData);
-      console.log('User info:', user);
+      console.log('=== Final Order Data ===');
+      console.log('Order Data:', orderData);
+      console.log('User ID:', orderData.userId);
+      console.log('Has Token:', !!userToken);
       
       // Include auth token if available
       const config = userToken ? {
@@ -1031,6 +1084,10 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       } : {};
       
       const { data } = await axios.post('/api/orders', orderData, config);
+      
+      console.log('=== Order Created ===');
+      console.log('Order ID:', data._id);
+      console.log('Order User ID:', data.userId);
       
       // Create detailed success message
       const itemName = selectedItem.name;
