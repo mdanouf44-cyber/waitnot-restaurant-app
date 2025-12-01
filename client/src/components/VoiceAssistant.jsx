@@ -7,7 +7,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
   // Load conversation state from localStorage on mount
   const loadConversationState = () => {
     try {
-      const saved = localStorage.getItem('aman_conversation_state');
+      const saved = localStorage.getItem('waiter_conversation_state');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       console.error('Error loading conversation state:', e);
@@ -163,9 +163,9 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     // Persist to localStorage
     try {
       if (newState === null) {
-        localStorage.removeItem('aman_conversation_state');
+        localStorage.removeItem('waiter_conversation_state');
       } else {
-        localStorage.setItem('aman_conversation_state', JSON.stringify(newState));
+        localStorage.setItem('waiter_conversation_state', JSON.stringify(newState));
       }
     } catch (e) {
       console.error('Error saving conversation state:', e);
@@ -310,14 +310,10 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           
           // lowerTranscript already defined above, reuse it
           // Check for wake word with multiple variations
-          const hasWakeWord = lowerTranscript.includes('hey aman') || 
-                             lowerTranscript.includes('hey amaan') ||
-                             lowerTranscript.includes('hey a man') ||
-                             lowerTranscript.includes('heyaman') ||
-                             lowerTranscript.includes('hi aman') ||
-                             lowerTranscript.includes('hi amaan') ||
-                             lowerTranscript.includes('hey man') ||
-                             lowerTranscript.includes('aman') && lowerTranscript.length < 15;
+          const hasWakeWord = lowerTranscript.includes('hey waiter') || 
+                             lowerTranscript.includes('hi waiter') ||
+                             lowerTranscript.includes('hello waiter') ||
+                             lowerTranscript.includes('waiter') && lowerTranscript.length < 15;
           
           // If in conversation, process any response (no wake word needed)
           // Otherwise, only process if wake word is detected
@@ -459,14 +455,10 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       // Check for wake word first - if present, don't load old state
       // Multiple variations for better detection
-      const hasWakeWord = lowerCommand.includes('hey aman') || 
-                         lowerCommand.includes('hey amaan') ||
-                         lowerCommand.includes('hey a man') ||
-                         lowerCommand.includes('heyaman') ||
-                         lowerCommand.includes('hi aman') ||
-                         lowerCommand.includes('hi amaan') ||
-                         lowerCommand.includes('hey man') ||
-                         (lowerCommand.includes('aman') && lowerCommand.length < 15);
+      const hasWakeWord = lowerCommand.includes('hey waiter') || 
+                         lowerCommand.includes('hi waiter') ||
+                         lowerCommand.includes('hello waiter') ||
+                         (lowerCommand.includes('waiter') && lowerCommand.length < 15);
       
       // Only reload conversation state if NO wake word detected
       let latestState = null;
@@ -501,7 +493,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       if (hasWakeWord) {
         console.log('Wake word detected - clearing any old conversation state');
         // Aggressively clear all state
-        localStorage.removeItem('aman_conversation_state');
+        localStorage.removeItem('waiter_conversation_state');
         conversationStateRef.current = null;
         setConversationState(null);
         
@@ -566,7 +558,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     try {
       // ALWAYS clear old state at the start of a new food request
       console.log('Starting new food request - clearing all old state');
-      localStorage.removeItem('aman_conversation_state');
+      localStorage.removeItem('waiter_conversation_state');
       conversationStateRef.current = null;
       setConversationState(null);
       
@@ -662,7 +654,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
     try {
       // ALWAYS clear old state at the start of a new recommendation request
       console.log('Starting new recommendation request - clearing all old state');
-      localStorage.removeItem('aman_conversation_state');
+      localStorage.removeItem('waiter_conversation_state');
       conversationStateRef.current = null;
       setConversationState(null);
       
@@ -1047,7 +1039,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       // Clear all conversation state after successful order
       console.log('Order placed successfully - clearing conversation state');
-      localStorage.removeItem('aman_conversation_state');
+      localStorage.removeItem('waiter_conversation_state');
       conversationStateRef.current = null;
       setConversationState(null);
       
@@ -1083,7 +1075,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       // Clear conversation state on error
       console.log('Order error - clearing conversation state');
-      localStorage.removeItem('aman_conversation_state');
+      localStorage.removeItem('waiter_conversation_state');
       conversationStateRef.current = null;
       setConversationState(null);
     }
@@ -1109,7 +1101,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         {showTextInput && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 border border-gray-200 dark:border-gray-700 mb-2">
             <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="font-bold text-gray-800 dark:text-white">Aman Assistant</h3>
+              <h3 className="font-bold text-gray-800 dark:text-white">Waiter Assistant</h3>
             </div>
             
             <form onSubmit={handleTextCommand} className="space-y-3">
@@ -1121,7 +1113,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
                   type="text"
                   value={textCommand}
                   onChange={(e) => setTextCommand(e.target.value)}
-                  placeholder="e.g., Hey Aman, I want pizza"
+                  placeholder="e.g., Hey Waiter, I want pizza"
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                   autoFocus
                 />
@@ -1161,7 +1153,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
 
   // Manual reset function
   const resetConversation = () => {
-    localStorage.removeItem('aman_conversation_state');
+    localStorage.removeItem('waiter_conversation_state');
     conversationStateRef.current = null;
     setConversationState(null);
     setResponse('');
@@ -1223,7 +1215,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       {showTextInput && (
         <div className="absolute bottom-20 left-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="font-bold text-gray-800 dark:text-white">Aman Assistant</h3>
+            <h3 className="font-bold text-gray-800 dark:text-white">Waiter Assistant</h3>
             <button
               onClick={() => setShowTextInput(false)}
               className="ml-auto text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -1274,7 +1266,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           {/* Header */}
           <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
             <Volume2 size={20} className="text-primary" />
-            <h3 className="font-bold text-gray-800 dark:text-white">Aman Assistant</h3>
+            <h3 className="font-bold text-gray-800 dark:text-white">Waiter Assistant</h3>
             {isListening && (
               <span className="ml-auto text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -1286,7 +1278,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           {/* Wake Word Hint */}
           {isListening && !transcript && !wakeWordDetected && (
             <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm text-blue-700 dark:text-blue-300">
-              💡 Say: <strong>"Hey Aman"</strong> to activate
+              💡 Say: <strong>"Hey Waiter"</strong> to activate
             </div>
           )}
           

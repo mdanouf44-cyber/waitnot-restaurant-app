@@ -158,9 +158,9 @@ router.post('/process', async (req, res) => {
     
     // Remove wake words (support variations)
     const cleanCommand = lowerCommand
-      .replace(/hey aman,?/gi, '')
-      .replace(/hey amaan,?/gi, '')
-      .replace(/hey aaman,?/gi, '')
+      .replace(/hey waiter,?/gi, '')
+      .replace(/hi waiter,?/gi, '')
+      .replace(/hello waiter,?/gi, '')
       .trim();
     
     console.log('Clean command:', cleanCommand);

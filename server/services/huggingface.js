@@ -14,7 +14,7 @@ const MODELS = {
 };
 
 // System prompt for NLU
-const NLU_SYSTEM_PROMPT = `You are Aman, a food ordering AI. Extract food orders from customer speech.
+const NLU_SYSTEM_PROMPT = `You are Waiter, a food ordering AI. Extract food orders from customer speech.
 
 CRITICAL: When customer mentions ANY food item, ALWAYS use action "order".
 
