@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
 import axios from 'axios';
 import { Capacitor } from '@capacitor/core';
 
 export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProcessed }) {
+  const navigate = useNavigate();
+  
   // Load conversation state from localStorage on mount
   const loadConversationState = () => {
     try {
@@ -995,6 +998,11 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       setResponse(placingMsg);
       speak(placingMsg);
       
+      // Get user info from localStorage
+      const userToken = localStorage.getItem('userToken');
+      const userData = localStorage.getItem('user');
+      const user = userData ? JSON.parse(userData) : null;
+      
       // Create order via API
       const orderData = {
         restaurantId: selectedItem.restaurantId,
@@ -1010,12 +1018,19 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         customerPhone: phone,
         deliveryAddress: address,
         paymentStatus: paymentMethod === 'cash' ? 'pending' : 'paid',
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
+        userId: user?._id || user?.id // Add userId if user is logged in
       };
       
       console.log('Placing order:', orderData);
+      console.log('User info:', user);
       
-      const { data } = await axios.post('/api/orders', orderData);
+      // Include auth token if available
+      const config = userToken ? {
+        headers: { Authorization: `Bearer ${userToken}` }
+      } : {};
+      
+      const { data } = await axios.post('/api/orders', orderData, config);
       
       // Create detailed success message
       const itemName = selectedItem.name;
@@ -1043,7 +1058,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       conversationStateRef.current = null;
       setConversationState(null);
       
-      // Redirect to order confirmation after 8 seconds (give time to hear message)
+      // Redirect to order confirmation after 5 seconds (give time to hear message)
       setTimeout(() => {
         // Clean up before redirect
         if (recognitionRef.current) {
@@ -1063,9 +1078,9 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         // Clear queue
         speechQueueRef.current = [];
         
-        // Navigate to order history page
-        window.location.href = '/orders';
-      }, 8000);
+        // Navigate to order history page using React Router
+        navigate('/orders');
+      }, 5000);
       
     } catch (error) {
       console.error('Error placing order:', error);
