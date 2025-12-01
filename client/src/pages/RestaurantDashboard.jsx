@@ -56,7 +56,14 @@ export default function RestaurantDashboard() {
 
   useEffect(() => {
     const restaurantId = localStorage.getItem('restaurantId');
-    if (!restaurantId) {
+    const restaurantToken = localStorage.getItem('restaurantToken');
+    
+    console.log('=== Restaurant Dashboard Loading ===');
+    console.log('Restaurant ID from localStorage:', restaurantId);
+    console.log('Restaurant Token exists:', !!restaurantToken);
+    
+    if (!restaurantId || !restaurantToken) {
+      console.log('No restaurant credentials found, redirecting to login');
       navigate('/restaurant-login');
       return;
     }
@@ -66,6 +73,7 @@ export default function RestaurantDashboard() {
       Notification.requestPermission();
     }
 
+    console.log('Fetching data for restaurant:', restaurantId);
     fetchRestaurant(restaurantId);
     fetchOrders(restaurantId);
     fetchReels(restaurantId);
@@ -115,10 +123,29 @@ export default function RestaurantDashboard() {
 
   const fetchRestaurant = async (id) => {
     try {
+      console.log('Fetching restaurant with ID:', id);
       const { data } = await axios.get(`/api/restaurants/${id}`);
+      console.log('Restaurant fetched:', data.name, '(ID:', data._id, ')');
       setRestaurant(data);
+      
+      // Verify the restaurantId in localStorage matches what we fetched
+      const storedId = localStorage.getItem('restaurantId');
+      if (storedId !== data._id) {
+        console.warn('⚠️ Restaurant ID mismatch!');
+        console.warn('Stored ID:', storedId);
+        console.warn('Fetched ID:', data._id);
+        // Fix the mismatch by updating localStorage
+        localStorage.setItem('restaurantId', data._id);
+      }
     } catch (error) {
       console.error('Error fetching restaurant:', error);
+      // If restaurant not found, redirect to login
+      if (error.response?.status === 404) {
+        console.error('Restaurant not found, clearing credentials');
+        localStorage.removeItem('restaurantId');
+        localStorage.removeItem('restaurantToken');
+        navigate('/restaurant-login');
+      }
     }
   };
 
