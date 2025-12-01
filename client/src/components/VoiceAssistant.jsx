@@ -670,7 +670,7 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       saveConversationState(newState);
       
-      const msg = `Sure! Would you like a vegetarian or non-vegetarian ${matchedFood}?`;
+      const msg = `Sure! Would you like a vegetarian or non-vegetarian ${matchedFood}? Say A for vegetarian or B for non-vegetarian.`;
       setResponse(msg);
       speak(msg);
       
@@ -722,8 +722,8 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
       
       setRecommendedItems(ratedItems);
       
-      // Ask for veg/non-veg preference
-      const msg = "I found some highly rated items! Do you want vegetarian or non-vegetarian options?";
+      // Ask for veg/non-veg preference with A/B options
+      const msg = "I found some highly rated items! Do you want vegetarian or non-vegetarian options? Say A for vegetarian or B for non-vegetarian.";
       setResponse(msg);
       speak(msg);
       
@@ -760,8 +760,20 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
         
         console.log('Checking veg preference in last words:', lastFewWords);
         
-        // Check for non-veg first (more specific)
-        const isNonVeg = lastFewWords.includes('non-veg') || 
+        // Check for A/B options first (most explicit)
+        const hasOptionA = lastFewWords.includes(' a ') || 
+                          lastFewWords.includes('option a') || 
+                          lastFewWords.endsWith(' a') ||
+                          lastFewWords.startsWith('a ');
+        
+        const hasOptionB = lastFewWords.includes(' b ') || 
+                          lastFewWords.includes('option b') || 
+                          lastFewWords.endsWith(' b') ||
+                          lastFewWords.startsWith('b ');
+        
+        // Check for non-veg keywords (more specific)
+        const isNonVeg = hasOptionB ||
+                        lastFewWords.includes('non-veg') || 
                         lastFewWords.includes('non veg') ||
                         lastFewWords.includes('nonveg') ||
                         lastFewWords.includes('chicken') || 
@@ -769,12 +781,12 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
                         (lastFewWords.includes('not') && lastFewWords.includes('veg'));
         
         // Check for veg (but not if it's part of "non-veg")
-        const isVeg = !isNonVeg && (
+        const isVeg = hasOptionA || (!isNonVeg && (
           lastFewWords.includes('vegetarian') || 
           lastFewWords.includes('veg')
-        );
+        ));
         
-        console.log('Detected - isVeg:', isVeg, 'isNonVeg:', isNonVeg);
+        console.log('Detected - isVeg:', isVeg, 'isNonVeg:', isNonVeg, 'hasA:', hasOptionA, 'hasB:', hasOptionB);
         
         if (!isVeg && !isNonVeg) {
           const msg = "I didn't catch that. Please say 'vegetarian' or 'non-vegetarian'.";
@@ -799,10 +811,17 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           });
         
         if (filteredItems.length === 0) {
-          const msg = `Sorry, no ${isVeg ? 'vegetarian' : 'non-vegetarian'} ${currentState.foodName || 'items'} found.`;
+          const msg = `Sorry, ${isVeg ? 'vegetarian' : 'non-vegetarian'} ${currentState.foodName || 'items'} are not available at the moment. Would you like to try the ${isVeg ? 'non-vegetarian' : 'vegetarian'} option instead? Say yes or no.`;
           setResponse(msg);
           speak(msg);
-          saveConversationState(null);
+          
+          // Update state to ask for alternative
+          const newState = {
+            ...currentState,
+            step: 'awaiting_alternative_preference',
+            originalPreference: isVeg ? 'veg' : 'non-veg'
+          };
+          saveConversationState(newState);
           return;
         }
         
@@ -853,6 +872,71 @@ export default function VoiceAssistant({ restaurantId, tableNumber, onOrderProce
           };
           saveConversationState(newState);
         }
+        
+      } else if (currentState.step === 'awaiting_alternative_preference') {
+        // User is deciding whether to try the alternative (veg/non-veg)
+        const wantsAlternative = command.includes('yes') || 
+                                command.includes('yeah') || 
+                                command.includes('sure') ||
+                                command.includes('ok');
+        
+        const doesNotWant = command.includes('no') || 
+                           command.includes('nope') || 
+                           command.includes('cancel');
+        
+        if (doesNotWant) {
+          const msg = "No problem! Feel free to ask for something else. Say 'Hey Waiter' to start a new order.";
+          setResponse(msg);
+          speak(msg);
+          saveConversationState(null);
+          return;
+        }
+        
+        if (!wantsAlternative) {
+          const msg = "Please say yes or no.";
+          setResponse(msg);
+          speak(msg);
+          return;
+        }
+        
+        // Try the alternative preference
+        const isVeg = currentState.originalPreference === 'non-veg'; // Opposite of original
+        const isNonVeg = !isVeg;
+        
+        const filteredItems = currentState.items
+          .filter(item => {
+            if (isVeg) return item.isVeg === true;
+            if (isNonVeg) return item.isVeg === false;
+            return true;
+          })
+          .sort((a, b) => {
+            if (b.averageRating !== a.averageRating) {
+              return (b.averageRating || 0) - (a.averageRating || 0);
+            }
+            return (b.reviewCount || 0) - (a.reviewCount || 0);
+          });
+        
+        if (filteredItems.length === 0) {
+          const msg = `Sorry, ${isVeg ? 'vegetarian' : 'non-vegetarian'} ${currentState.foodName || 'items'} are also not available. Please try ordering something else.`;
+          setResponse(msg);
+          speak(msg);
+          saveConversationState(null);
+          return;
+        }
+        
+        // Get the best rated item
+        const topItem = filteredItems[0];
+        const ratingText = topItem.averageRating ? ` with ${topItem.averageRating} stars rating` : '';
+        const msg = `Great! The best rated ${isVeg ? 'vegetarian' : 'non-vegetarian'} ${currentState.foodName || 'item'} is ${topItem.name} from ${topItem.restaurantName}${ratingText}. How many would you like to order?`;
+        setResponse(msg);
+        speak(msg);
+        
+        const newState = {
+          step: 'awaiting_quantity',
+          selectedItem: topItem,
+          preference: isVeg ? 'veg' : 'non-veg'
+        };
+        saveConversationState(newState);
         
       } else if (currentState.step === 'awaiting_quantity') {
         // Extract quantity
