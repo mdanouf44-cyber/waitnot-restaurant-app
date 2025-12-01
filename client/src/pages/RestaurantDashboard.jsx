@@ -277,6 +277,11 @@ export default function RestaurantDashboard() {
         alert('Please select a menu item');
         return;
       }
+
+      // Show loading message for video uploads
+      if (uploadMethod === 'upload' && videoFile && !editingReel) {
+        console.log('Starting video upload, this may take a moment...');
+      }
       
       let videoUrl = reelForm.videoUrl;
 
@@ -310,9 +315,13 @@ export default function RestaurantDashboard() {
 
       let response;
       if (editingReel) {
-        response = await axios.put(`/api/reels/${editingReel._id}`, reelData);
+        response = await axios.put(`/api/reels/${editingReel._id}`, reelData, {
+          timeout: 120000 // 2 minutes for video uploads
+        });
       } else {
-        response = await axios.post('/api/reels', reelData);
+        response = await axios.post('/api/reels', reelData, {
+          timeout: 120000 // 2 minutes for video uploads
+        });
       }
       
       console.log('Reel saved:', response.data);
