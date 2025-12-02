@@ -68,15 +68,19 @@ export default function RestaurantDashboard() {
       return;
     }
 
+    // CRITICAL: Store the restaurant ID in a ref to prevent any changes
+    const lockedRestaurantId = restaurantId;
+    console.log('🔒 LOCKED Restaurant ID:', lockedRestaurantId);
+
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
 
-    console.log('Fetching data for restaurant:', restaurantId);
-    fetchRestaurant(restaurantId);
-    fetchOrders(restaurantId);
-    fetchReels(restaurantId);
+    console.log('Fetching data for restaurant:', lockedRestaurantId);
+    fetchRestaurant(lockedRestaurantId);
+    fetchOrders(lockedRestaurantId);
+    fetchReels(lockedRestaurantId);
 
     // Use production Socket.IO URL
     const socketUrl = localStorage.getItem('socketUrl') || 'https://waitnot-restaurant-app.onrender.com';
@@ -87,7 +91,9 @@ export default function RestaurantDashboard() {
       reconnectionAttempts: 5
     });
     
-    socket.emit('join-restaurant', restaurantId);
+    // CRITICAL: Use the locked restaurant ID for socket connection
+    console.log('🔌 Joining Socket.IO room for restaurant:', lockedRestaurantId);
+    socket.emit('join-restaurant', lockedRestaurantId);
     
     socket.on('new-order', (order) => {
       console.log('New order received:', order);
@@ -127,15 +133,32 @@ export default function RestaurantDashboard() {
       console.log('Restaurant ID:', id);
       const { data } = await axios.get(`/api/restaurants/${id}`);
       console.log('✓ Restaurant fetched:', data.name, '(ID:', data._id, ')');
+      
+      // CRITICAL: Verify the fetched restaurant matches the requested ID
+      if (data._id !== id) {
+        console.error('🚨 CRITICAL ERROR: Restaurant ID mismatch!');
+        console.error('Requested ID:', id);
+        console.error('Received ID:', data._id);
+        console.error('Received Name:', data.name);
+        console.error('This should NEVER happen - possible backend issue');
+        
+        // Don't set the restaurant - redirect to login instead
+        localStorage.removeItem('restaurantId');
+        localStorage.removeItem('restaurantToken');
+        alert('Session error detected. Please login again.');
+        navigate('/restaurant-login');
+        return;
+      }
+      
       setRestaurant(data);
       
-      // Verify the restaurantId in localStorage matches what we fetched
+      // Double-check localStorage hasn't been corrupted
       const storedId = localStorage.getItem('restaurantId');
       if (storedId !== data._id) {
-        console.warn('⚠️ Restaurant ID mismatch detected!');
+        console.warn('⚠️ localStorage was corrupted!');
         console.warn('Stored ID:', storedId);
-        console.warn('Fetched ID:', data._id);
-        console.warn('Fixing mismatch by updating localStorage...');
+        console.warn('Correct ID:', data._id);
+        console.warn('Restoring correct ID...');
         localStorage.setItem('restaurantId', data._id);
       }
       
