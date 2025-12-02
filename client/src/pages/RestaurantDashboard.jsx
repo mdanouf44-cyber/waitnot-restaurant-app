@@ -245,7 +245,8 @@ export default function RestaurantDashboard() {
   const handleMenuSubmit = async (e) => {
     e.preventDefault();
     try {
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       if (editingItem) {
         await axios.put(`/api/restaurants/${restaurantId}/menu/${editingItem._id}`, menuForm);
       } else {
@@ -263,7 +264,8 @@ export default function RestaurantDashboard() {
   const deleteMenuItem = async (menuId) => {
     if (!window.confirm('Delete this item?')) return;
     try {
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       await axios.delete(`/api/restaurants/${restaurantId}/menu/${menuId}`);
       fetchRestaurant(restaurantId);
     } catch (error) {
@@ -349,7 +351,8 @@ export default function RestaurantDashboard() {
     e.preventDefault();
     
     try {
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       
       // Validate required fields
       if (!reelForm.menuItemId) {
@@ -436,7 +439,8 @@ export default function RestaurantDashboard() {
   const deleteReel = async (reelId) => {
     if (!window.confirm('Delete this reel?')) return;
     try {
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       console.log('Deleting reel:', reelId);
       const response = await axios.delete(`/api/reels/${reelId}`);
       console.log('Delete response:', response.data);
@@ -452,7 +456,8 @@ export default function RestaurantDashboard() {
 
   const addTable = async () => {
     try {
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       const newTableCount = (restaurant.tables || 0) + 1;
       
       console.log('Adding table:', { restaurantId, newTableCount });
@@ -479,7 +484,8 @@ export default function RestaurantDashboard() {
     }
     
     try {
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       const newTableCount = Math.max(0, (restaurant.tables || 0) - 1);
       
       console.log('Deleting table:', { restaurantId, tableNum, newTableCount });
@@ -660,7 +666,8 @@ export default function RestaurantDashboard() {
       localStorage.removeItem(sessionKey);
       
       // Refresh orders
-      const restaurantId = localStorage.getItem('restaurantId');
+      // CRITICAL: Use sessionStorage (tab-specific) not localStorage
+      const restaurantId = sessionStorage.getItem('restaurantId') || localStorage.getItem('restaurantId');
       await fetchOrders(restaurantId);
     } catch (error) {
       console.error('Error generating bill:', error);
