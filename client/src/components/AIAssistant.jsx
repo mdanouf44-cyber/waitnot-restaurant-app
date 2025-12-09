@@ -57,6 +57,13 @@ export default function AIAssistant() {
         setTranscript(speechResult);
         setInputMessage(speechResult);
         setIsListening(false);
+        
+        // Auto-send message after voice input completes
+        setTimeout(() => {
+          if (speechResult.trim()) {
+            handleVoiceMessage(speechResult);
+          }
+        }, 500);
       };
 
       recognitionRef.current.onerror = (event) => {
@@ -229,6 +236,22 @@ export default function AIAssistant() {
     if (sender === 'ai') {
       speak(text);
     }
+  };
+
+  const handleVoiceMessage = async (message) => {
+    if (!message.trim()) return;
+
+    addMessage('user', message);
+    setInputMessage('');
+    setTranscript('');
+    setIsTyping(true);
+
+    // Get AI response
+    setTimeout(async () => {
+      const aiResponse = await getAIResponse(message);
+      setIsTyping(false);
+      addMessage('ai', aiResponse);
+    }, 800);
   };
 
   const handleSendMessage = async () => {
@@ -600,70 +623,79 @@ export default function AIAssistant() {
           <div className="p-4 bg-white dark:bg-gray-800 border-t-2 border-purple-200 dark:border-purple-800">
             {/* Voice Status */}
             {(isListening || transcript) && (
-              <div className="mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
-                <div className="flex items-center gap-2 text-sm">
-                  {isListening && (
-                    <>
-                      <Mic size={16} className="text-purple-600 animate-pulse" />
-                      <span className="text-purple-600 dark:text-purple-400 font-medium">Listening...</span>
-                    </>
-                  )}
-                  {transcript && !isListening && (
-                    <span className="text-gray-700 dark:text-gray-300">"{transcript}"</span>
-                  )}
+              <div className="mb-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    {isListening && (
+                      <>
+                        <Mic size={16} className="text-purple-600 animate-pulse" />
+                        <span className="text-purple-600 dark:text-purple-400 font-medium">Listening... Speak now</span>
+                      </>
+                    )}
+                    {transcript && !isListening && (
+                      <>
+                        <Loader size={16} className="text-green-600 animate-spin" />
+                        <span className="text-green-600 dark:text-green-400 font-medium">Processing: "{transcript}"</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
             
             <div className="flex gap-2">
-              {/* Voice Button */}
+              {/* Voice Button - Primary interaction */}
               <button
                 onClick={toggleListening}
-                className={`p-3 rounded-xl transition-all ${
+                disabled={isTyping}
+                className={`p-4 rounded-xl transition-all flex-shrink-0 ${
                   isListening 
                     ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                    : 'bg-purple-500 hover:bg-purple-600'
-                } text-white`}
+                    : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg'
+                } text-white disabled:opacity-50`}
                 aria-label={isListening ? "Stop listening" : "Start voice input"}
               >
-                {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                {isListening ? <MicOff size={24} /> : <Mic size={24} />}
               </button>
               
-              {/* Text Input */}
+              {/* Text Input - Optional fallback */}
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type or speak..."
-                className="flex-1 px-4 py-3 border-2 border-purple-300 dark:border-purple-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white placeholder-gray-400"
+                placeholder="Or type here..."
+                disabled={isListening || isTyping}
+                className="flex-1 px-4 py-3 border-2 border-purple-300 dark:border-purple-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 disabled:opacity-50"
               />
               
-              {/* Speaker Button */}
+              {/* Speaker Button - Stop AI voice */}
               {isSpeaking && (
                 <button
                   onClick={stopSpeaking}
-                  className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl transition-all"
+                  className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl transition-all flex-shrink-0"
                   aria-label="Stop speaking"
                 >
                   <Volume2 size={20} className="animate-pulse" />
                 </button>
               )}
               
-              {/* Send Button */}
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim()}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Send message"
-              >
-                <Send size={20} />
-              </button>
+              {/* Send Button - Only for text input */}
+              {inputMessage.trim() && !isListening && (
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isTyping}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
+                  aria-label="Send message"
+                >
+                  <Send size={20} />
+                </button>
+              )}
             </div>
             
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center flex items-center justify-center gap-2">
               <Mic size={12} />
-              Voice-enabled AI • Type or speak
+              {isListening ? 'Speak now - Auto-sends when done' : 'Click mic to speak • Auto-sends voice messages'}
             </p>
           </div>
           
