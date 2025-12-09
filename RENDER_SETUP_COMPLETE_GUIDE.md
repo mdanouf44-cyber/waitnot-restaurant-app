@@ -105,35 +105,64 @@ Free (for testing)
 ### Step 3.3: Environment Variables
 Click **"Advanced"** → **"Add Environment Variable"
 
-Add these variables:
+Add these variables (based on your actual server code):
 
 ```bash
-# Port (Render provides this automatically)
+# Port (Render automatically sets this to 10000)
 PORT=10000
 
-# MongoDB Connection (if using MongoDB)
-MONGODB_URI=your_mongodb_connection_string
-
-# JWT Secret
-JWT_SECRET=your_super_secret_jwt_key_change_this
-
-# OpenAI API Key (for voice assistant)
-OPENAI_API_KEY=your_openai_api_key
-
-# Hugging Face API Key (alternative)
-HUGGINGFACE_API_KEY=your_huggingface_api_key
+# JWT Secret (REQUIRED - for authentication)
+JWT_SECRET=your_super_secret_jwt_key_min_32_characters_long_change_this
 
 # Node Environment
 NODE_ENV=production
 
-# CORS Origin (your frontend URL)
-CORS_ORIGIN=https://waitnot-restaurant-app.vercel.app
+# Razorpay Payment Gateway (REQUIRED if using payments)
+RAZORPAY_KEY_ID=rzp_test_RkqqfmhBYvh7c5
+RAZORPAY_KEY_SECRET=U7pcwC3yR7T8rKUch0GEkFqc
 
-# Session Secret
-SESSION_SECRET=your_session_secret_key
+# MSG91 SMS Service (REQUIRED if using OTP login)
+MSG91_AUTH_KEY=480068AuNZVGZoLD69289ec2P1
+
+# OpenRouter AI (OPTIONAL - for voice assistant AI processing)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# Hugging Face AI (OPTIONAL - alternative to OpenRouter)
+HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+
+# AI Processing Feature Flag (OPTIONAL)
+USE_AI_PROCESSING=false
 ```
 
-### Step 3.4: Deploy Backend
+**Important Notes:**
+- ✅ **JWT_SECRET** - MUST be changed to a secure random string (min 32 characters)
+- ✅ **RAZORPAY** - Use test keys for testing, live keys for production
+- ✅ **MSG91_AUTH_KEY** - Get your own key from https://msg91.com
+- ✅ **AI Keys** - Optional, only needed if using voice assistant AI features
+- ⚠️ **Never commit these values to GitHub!**
+
+### Step 3.4: Generate Secure JWT Secret
+
+**IMPORTANT:** Never use the default JWT secret in production!
+
+**Option 1: Using OpenSSL (Recommended)**
+```bash
+openssl rand -base64 32
+```
+Output example: `K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=`
+
+**Option 2: Using Node.js**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+**Option 3: Online Generator**
+- Visit: https://randomkeygen.com/
+- Use "CodeIgniter Encryption Keys" (256-bit)
+
+Copy the generated key and use it as your `JWT_SECRET` value.
+
+### Step 3.5: Deploy Backend
 1. Click **"Create Web Service"**
 2. Wait for deployment (2-5 minutes)
 3. Watch logs for any errors
@@ -142,7 +171,7 @@ SESSION_SECRET=your_session_secret_key
    https://waitnot-backend.onrender.com
    ```
 
-### Step 3.5: Test Backend
+### Step 3.6: Test Backend
 Open in browser:
 ```
 https://waitnot-backend.onrender.com/api/restaurants
@@ -229,27 +258,50 @@ Create these in Render Dashboard → Your Service → Environment:
 PORT=10000
 NODE_ENV=production
 
-# Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/waitnot?retryWrites=true&w=majority
+# Authentication (REQUIRED)
+JWT_SECRET=your_jwt_secret_min_32_characters_long_change_this_to_random_string
 
-# Authentication
-JWT_SECRET=your_jwt_secret_min_32_characters_long
-SESSION_SECRET=your_session_secret_min_32_characters
+# Payment Gateway (REQUIRED for payments)
+RAZORPAY_KEY_ID=rzp_test_RkqqfmhBYvh7c5
+RAZORPAY_KEY_SECRET=U7pcwC3yR7T8rKUch0GEkFqc
 
-# API Keys
-OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxx
-HUGGINGFACE_API_KEY=hf_xxxxxxxxxxxxx
+# SMS Service (REQUIRED for OTP login)
+MSG91_AUTH_KEY=480068AuNZVGZoLD69289ec2P1
 
-# CORS
-CORS_ORIGIN=https://waitnot-restaurant-app.vercel.app
-
-# Payment (if using)
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-
-# SMS (if using)
-MSG91_AUTH_KEY=your_msg91_key
+# AI Services (OPTIONAL - for voice assistant)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+USE_AI_PROCESSING=false
 ```
+
+**How to Get API Keys:**
+
+1. **JWT_SECRET:**
+   - Generate random string: `openssl rand -base64 32`
+   - Or use: https://randomkeygen.com/
+
+2. **Razorpay:**
+   - Sign up: https://razorpay.com
+   - Dashboard → Settings → API Keys
+   - Use Test keys for development
+   - Use Live keys for production
+
+3. **MSG91:**
+   - Sign up: https://msg91.com
+   - Dashboard → API → Auth Key
+   - Free tier: 100 SMS/day
+
+4. **OpenRouter (Optional):**
+   - Sign up: https://openrouter.ai
+   - Dashboard → Keys → Create Key
+   - Add credits to account
+
+5. **Hugging Face (Optional):**
+   - Sign up: https://huggingface.co
+   - Settings → Access Tokens → New Token
+   - Free tier available
+
+**Note:** Your app currently uses JSON file storage (no MongoDB needed). Data is stored in `server/data/` folder.
 
 ### Frontend Environment Variables
 
