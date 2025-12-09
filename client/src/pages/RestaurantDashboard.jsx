@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, QrCode, LogOut, Film, Eye, Heart, X, CreditCard, Moon, Sun, BarChart3, ShoppingBag, Users, Package, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, QrCode, LogOut, Film, Eye, Heart, X, CreditCard, Moon, Sun, BarChart3, ShoppingBag, Users, Package, DollarSign, TrendingUp, MapPin } from 'lucide-react';
 import axios from 'axios';
 import io from 'socket.io-client';
 import BillModal from '../components/BillModal';
@@ -10,6 +10,7 @@ import AnalyticsExport from '../components/AnalyticsExport';
 import OrderNotifications from '../components/OrderNotifications';
 import QuickStats from '../components/QuickStats';
 import PaymentSettingsTab from '../components/PaymentSettingsTab';
+import RestaurantLocationSettings from '../components/RestaurantLocationSettings';
 
 export default function RestaurantDashboard() {
   const navigate = useNavigate();
@@ -816,6 +817,15 @@ export default function RestaurantDashboard() {
           >
             <BarChart3 size={18} className="inline mr-1 sm:mr-2" />
             Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab('location')}
+            className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg font-semibold whitespace-nowrap text-sm sm:text-base ${
+              activeTab === 'location' ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            <MapPin size={18} className="inline mr-1 sm:mr-2" />
+            Location
           </button>
         </div>
         </div>
@@ -1947,6 +1957,27 @@ export default function RestaurantDashboard() {
 
         {activeTab === 'payment' && (
           <PaymentSettingsTab restaurant={restaurant} setRestaurant={setRestaurant} />
+        )}
+
+        {activeTab === 'location' && (
+          <RestaurantLocationSettings 
+            restaurant={restaurant}
+            onSave={async (locationData) => {
+              try {
+                const token = localStorage.getItem('restaurantToken');
+                const response = await axios.patch(
+                  `/api/restaurants/${restaurant._id}/location-settings`,
+                  locationData,
+                  { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setRestaurant(response.data);
+                alert('Location settings saved successfully!');
+              } catch (error) {
+                console.error('Error saving location:', error);
+                throw error;
+              }
+            }}
+          />
         )}
       </div>
 
