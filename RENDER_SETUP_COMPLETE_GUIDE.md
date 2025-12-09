@@ -117,22 +117,18 @@ JWT_SECRET=your_super_secret_jwt_key_min_32_characters_long_change_this
 # Node Environment
 NODE_ENV=production
 
+# Razorpay Payment Gateway (REQUIRED if using payments)
+RAZORPAY_KEY_ID=rzp_test_RkqqfmhBYvh7c5
+RAZORPAY_KEY_SECRET=U7pcwC3yR7T8rKUch0GEkFqc
 
-# OpenRouter AI (OPTIONAL - for voice assistant AI processing)
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-
-# Hugging Face AI (OPTIONAL - alternative to OpenRouter)
-HUGGINGFACE_API_KEY=your_huggingface_api_key_here
-
-# AI Processing Feature Flag (OPTIONAL)
-USE_AI_PROCESSING=false
+# MSG91 SMS Service (REQUIRED if using OTP login)
+MSG91_AUTH_KEY=480068AuNZVGZoLD69289ec2P1
 ```
 
 **Important Notes:**
 - ✅ **JWT_SECRET** - MUST be changed to a secure random string (min 32 characters)
 - ✅ **RAZORPAY** - Use test keys for testing, live keys for production
 - ✅ **MSG91_AUTH_KEY** - Get your own key from https://msg91.com
-- ✅ **AI Keys** - Optional, only needed if using voice assistant AI features
 - ⚠️ **Never commit these values to GitHub!**
 
 ### Step 3.4: Generate Secure JWT Secret
@@ -261,11 +257,6 @@ RAZORPAY_KEY_SECRET=U7pcwC3yR7T8rKUch0GEkFqc
 
 # SMS Service (REQUIRED for OTP login)
 MSG91_AUTH_KEY=480068AuNZVGZoLD69289ec2P1
-
-# AI Services (OPTIONAL - for voice assistant)
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-HUGGINGFACE_API_KEY=your_huggingface_api_key_here
-USE_AI_PROCESSING=false
 ```
 
 **How to Get API Keys:**
@@ -284,16 +275,6 @@ USE_AI_PROCESSING=false
    - Sign up: https://msg91.com
    - Dashboard → API → Auth Key
    - Free tier: 100 SMS/day
-
-4. **OpenRouter (Optional):**
-   - Sign up: https://openrouter.ai
-   - Dashboard → Keys → Create Key
-   - Add credits to account
-
-5. **Hugging Face (Optional):**
-   - Sign up: https://huggingface.co
-   - Settings → Access Tokens → New Token
-   - Free tier available
 
 **Note:** Your app currently uses JSON file storage (no MongoDB needed). Data is stored in `server/data/` folder.
 

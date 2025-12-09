@@ -13,7 +13,6 @@ https://waitnot-backend.onrender.com
 - Users: `https://waitnot-backend.onrender.com/api/users`
 - Auth: `https://waitnot-backend.onrender.com/api/auth`
 - Payment: `https://waitnot-backend.onrender.com/api/payment`
-- Voice: `https://waitnot-backend.onrender.com/api/voice`
 - Reels: `https://waitnot-backend.onrender.com/api/reels`
 - Reviews: `https://waitnot-backend.onrender.com/api/reviews`
 

@@ -13,7 +13,6 @@ import authRoutes from './routes/auth.js';
 import paymentRoutes from './routes/payment.js';
 import userRoutes from './routes/users.js';
 import reviewRoutes from './routes/reviews.js';
-import voiceRoutes from './routes/voice.js';
 
 dotenv.config();
 
@@ -120,7 +119,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reviews', reviewRoutes);
-app.use('/api/voice', voiceRoutes);
 
 // Socket.IO for real-time orders
 io.on('connection', (socket) => {
