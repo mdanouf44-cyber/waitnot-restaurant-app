@@ -154,4 +154,90 @@ router.patch('/:id/payment-settings', async (req, res) => {
   }
 });
 
+// Update location settings
+router.patch('/:id/location-settings', async (req, res) => {
+  try {
+    const { latitude, longitude, deliveryRadiusKm, address } = req.body;
+    
+    // Validate coordinates
+    if (latitude !== undefined && (isNaN(latitude) || latitude < -90 || latitude > 90)) {
+      return res.status(400).json({ error: 'Invalid latitude. Must be between -90 and 90' });
+    }
+    
+    if (longitude !== undefined && (isNaN(longitude) || longitude < -180 || longitude > 180)) {
+      return res.status(400).json({ error: 'Invalid longitude. Must be between -180 and 180' });
+    }
+    
+    if (deliveryRadiusKm !== undefined && (isNaN(deliveryRadiusKm) || deliveryRadiusKm < 0)) {
+      return res.status(400).json({ error: 'Invalid delivery radius. Must be a positive number' });
+    }
+    
+    const locationSettings = {};
+    if (latitude !== undefined) locationSettings.latitude = parseFloat(latitude);
+    if (longitude !== undefined) locationSettings.longitude = parseFloat(longitude);
+    if (deliveryRadiusKm !== undefined) locationSettings.deliveryRadiusKm = parseFloat(deliveryRadiusKm);
+    if (address !== undefined) locationSettings.address = address;
+    
+    const restaurant = await restaurantDB.update(req.params.id, locationSettings);
+    if (!restaurant) return res.status(404).json({ error: 'Restaurant not found' });
+    
+    const { password, ...rest } = restaurant;
+    res.json(rest);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Check delivery availability
+router.post('/:id/check-delivery', async (req, res) => {
+  try {
+    const { userLatitude, userLongitude } = req.body;
+    
+    if (!userLatitude || !userLongitude) {
+      return res.status(400).json({ error: 'User location is required' });
+    }
+    
+    const restaurant = await restaurantDB.findById(req.params.id);
+    if (!restaurant) return res.status(404).json({ error: 'Restaurant not found' });
+    
+    // If restaurant doesn't have location configured, allow delivery
+    if (!restaurant.latitude || !restaurant.longitude || !restaurant.deliveryRadiusKm) {
+      return res.json({ 
+        allowed: true, 
+        distance: null,
+        message: 'Restaurant location not configured' 
+      });
+    }
+    
+    // Calculate distance using Haversine formula
+    const R = 6371; // Earth radius in km
+    const toRad = (value) => (value * Math.PI) / 180;
+    
+    const dLat = toRad(userLatitude - restaurant.latitude);
+    const dLon = toRad(userLongitude - restaurant.longitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(restaurant.latitude)) *
+        Math.cos(toRad(userLatitude)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // in km
+    
+    const allowed = distance <= restaurant.deliveryRadiusKm;
+    
+    res.json({
+      allowed,
+      distance: parseFloat(distance.toFixed(2)),
+      deliveryRadiusKm: restaurant.deliveryRadiusKm,
+      message: allowed 
+        ? 'You are in the delivery zone' 
+        : 'You are outside the delivery zone'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
