@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Clock, Star, ScanLine } from 'lucide-react';
+import { Search, MapPin, Clock, Star, ScanLine, Navigation } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { convertNumerals } from '../utils/numberFormatter';
+import { getUserLocation } from '../utils/geolocation';
 import QRScanner from '../components/QRScanner';
 import Chatbot from '../components/Chatbot';
 import AIAssistant from '../components/AIAssistant';
@@ -15,6 +16,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
     // Load all restaurants on initial mount
@@ -48,6 +52,25 @@ export default function Home() {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
+    }
+  };
+
+  const handleDetectLocation = async () => {
+    setLocationLoading(true);
+    setLocationError(null);
+    
+    try {
+      const location = await getUserLocation();
+      setUserLocation(location);
+      
+      // Show success message
+      alert(`Location detected!\nLatitude: ${location.latitude.toFixed(6)}\nLongitude: ${location.longitude.toFixed(6)}\n\nYou can now check delivery zones for restaurants.`);
+    } catch (error) {
+      console.error('Location error:', error);
+      setLocationError(error.message || 'Failed to get location');
+      alert('Failed to get your location. Please enable location permissions in your browser settings.');
+    } finally {
+      setLocationLoading(false);
     }
   };
 
@@ -164,6 +187,29 @@ export default function Home() {
             <Search size={20} />
           </button>
           
+          {/* Location Button */}
+          <button
+            onClick={handleDetectLocation}
+            disabled={locationLoading}
+            className={`${
+              userLocation 
+                ? 'bg-green-500 hover:bg-green-600' 
+                : 'bg-blue-500 hover:bg-blue-600'
+            } text-white p-2.5 sm:p-3 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed relative`}
+            title={userLocation ? "Location Detected" : "Detect My Location"}
+          >
+            {locationLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+            ) : (
+              <>
+                <Navigation size={20} className={userLocation ? 'animate-pulse' : ''} />
+                {userLocation && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></span>
+                )}
+              </>
+            )}
+          </button>
+          
           {/* QR Scanner Button */}
           <button
             onClick={() => setShowScanner(true)}
@@ -173,6 +219,25 @@ export default function Home() {
             <ScanLine size={20} />
           </button>
         </div>
+        
+        {/* Location Status */}
+        {userLocation && (
+          <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+            <MapPin size={16} className="text-green-600 dark:text-green-400" />
+            <span className="text-sm text-green-700 dark:text-green-300">
+              Location detected • Delivery zones available
+            </span>
+          </div>
+        )}
+        
+        {locationError && (
+          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
+            <MapPin size={16} className="text-red-600 dark:text-red-400" />
+            <span className="text-sm text-red-700 dark:text-red-300">
+              {locationError}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Restaurant Grid */}
